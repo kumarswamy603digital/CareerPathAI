@@ -20,7 +20,7 @@ export type Database = {
           id: string
           interests: string[] | null
           onboarding_completed: boolean | null
-          personality: string | null
+          personality: string[] | null
           recommended_career: string | null
           updated_at: string
           user_id: string
@@ -30,7 +30,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           onboarding_completed?: boolean | null
-          personality?: string | null
+          personality?: string[] | null
           recommended_career?: string | null
           updated_at?: string
           user_id: string
@@ -40,7 +40,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           onboarding_completed?: boolean | null
-          personality?: string | null
+          personality?: string[] | null
           recommended_career?: string | null
           updated_at?: string
           user_id?: string
