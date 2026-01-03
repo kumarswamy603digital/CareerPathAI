@@ -21,9 +21,13 @@ export function CareerNode({ data }: CareerNodeProps) {
   return (
     <div
       onClick={handleClick}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        handleClick();
+      }}
       className={cn(
-        'px-4 py-2 rounded-lg border-2 transition-all duration-300 min-w-[130px] text-center cursor-pointer',
-        'bg-card border-border hover:glow-amber hover:scale-105',
+        'px-4 py-3 md:py-2 rounded-lg border-2 transition-all duration-300 min-w-[120px] md:min-w-[130px] text-center cursor-pointer touch-manipulation',
+        'bg-card border-border hover:glow-amber active:scale-95 md:hover:scale-105',
         data.isSelected && 'border-primary bg-accent ring-2 ring-primary/30 glow-amber',
         data.isFocused && !data.isSelected && 'border-primary/60 ring-2 ring-primary/20 scale-105',
         data.isFiltered && !data.isSelected && !data.isFocused && 'opacity-40 grayscale bg-muted-node border-muted-node'
@@ -32,7 +36,7 @@ export function CareerNode({ data }: CareerNodeProps) {
       <Handle type="target" position={Position.Top} className="!bg-border !w-2 !h-2" />
       <span
         className={cn(
-          'text-sm font-medium',
+          'text-xs md:text-sm font-medium select-none',
           data.isSelected ? 'text-primary font-semibold' : 'text-foreground',
           data.isFocused && !data.isSelected && 'text-primary',
           data.isFiltered && !data.isSelected && !data.isFocused && 'text-muted-foreground'

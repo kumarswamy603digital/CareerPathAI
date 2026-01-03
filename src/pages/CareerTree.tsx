@@ -14,6 +14,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FilterPanel, SalaryRange, salaryRanges, EducationLevel, educationLevels, GrowthRate, growthRates } from '@/components/FilterPanel';
+import { MobileTreeControls } from '@/components/MobileTreeControls';
 import { AIChatButton } from '@/components/AIChatButton';
 import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
@@ -25,6 +26,7 @@ import { Personality, Interest } from '@/data/careerData';
 import { useCareerShortlist } from '@/hooks/useCareerShortlist';
 import { useCareerHistory } from '@/hooks/useCareerHistory';
 import { useTreeKeyboardNavigation } from '@/hooks/useTreeKeyboardNavigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const nodeTypes = {
   career: CareerNode,
@@ -32,6 +34,8 @@ const nodeTypes = {
   subcategory: SubCategoryNode,
   root: RootNode,
 };
+
+import { cn } from '@/lib/utils';
 
 function generateNodesAndEdges(
   filteredOutCareers: Set<string>,
@@ -141,8 +145,10 @@ function generateNodesAndEdges(
   return { nodes, edges };
 }
 
-export default function CareerTree() {
+function CareerTreeContent() {
   const [searchParams] = useSearchParams();
+  const isMobile = useIsMobile();
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
   
   // Get initial values from URL params (from onboarding)
   const initialCareer = searchParams.get('career') || null;
@@ -317,31 +323,47 @@ export default function CareerTree() {
     setEdges(newEdges);
   }, [filteredOutCareers, selectedCareer, handleCareerClick, focusedCareer, setNodes, setEdges]);
 
+  // Zoom handlers for mobile
+  const handleZoomIn = useCallback(() => {
+    zoomIn({ duration: 300 });
+  }, [zoomIn]);
+
+  const handleZoomOut = useCallback(() => {
+    zoomOut({ duration: 300 });
+  }, [zoomOut]);
+
+  const handleFitView = useCallback(() => {
+    fitView({ duration: 300, padding: 0.2 });
+  }, [fitView]);
+
   return (
     <div className="h-screen w-full flex bg-card">
-      <FilterPanel
-        selectedPersonalities={selectedPersonalities}
-        selectedInterests={selectedInterests}
-        selectedSalaryRange={selectedSalaryRange}
-        selectedEducationLevel={selectedEducationLevel}
-        selectedGrowthRate={selectedGrowthRate}
-        remoteOnly={remoteOnly}
-        onPersonalityChange={setSelectedPersonalities}
-        onInterestChange={setSelectedInterests}
-        onSalaryRangeChange={setSelectedSalaryRange}
-        onEducationLevelChange={setSelectedEducationLevel}
-        onGrowthRateChange={setSelectedGrowthRate}
-        onRemoteOnlyChange={setRemoteOnly}
-        recommendedCareer={selectedCareer}
-        shortlist={shortlist}
-        onRemoveFromShortlist={removeFromShortlist}
-        onCompare={handleCompare}
-        onCareerClick={handleCareerClick}
-      />
+      {/* Desktop Filter Panel */}
+      {!isMobile && (
+        <FilterPanel
+          selectedPersonalities={selectedPersonalities}
+          selectedInterests={selectedInterests}
+          selectedSalaryRange={selectedSalaryRange}
+          selectedEducationLevel={selectedEducationLevel}
+          selectedGrowthRate={selectedGrowthRate}
+          remoteOnly={remoteOnly}
+          onPersonalityChange={setSelectedPersonalities}
+          onInterestChange={setSelectedInterests}
+          onSalaryRangeChange={setSelectedSalaryRange}
+          onEducationLevelChange={setSelectedEducationLevel}
+          onGrowthRateChange={setSelectedGrowthRate}
+          onRemoteOnlyChange={setRemoteOnly}
+          recommendedCareer={selectedCareer}
+          shortlist={shortlist}
+          onRemoveFromShortlist={removeFromShortlist}
+          onCompare={handleCompare}
+          onCareerClick={handleCareerClick}
+        />
+      )}
 
       <div className="flex-1 relative">
-        {/* Keyboard Navigation Indicator */}
-        {isNavigating && focusedCareer && (
+        {/* Keyboard Navigation Indicator - Desktop only */}
+        {!isMobile && isNavigating && focusedCareer && (
           <div className="absolute top-4 right-4 z-20 bg-card border border-border rounded-lg shadow-lg px-4 py-2">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Navigating:</span>
@@ -355,7 +377,10 @@ export default function CareerTree() {
         )}
 
         {/* Global Career Search */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
+        <div className={cn(
+          "absolute z-10 w-full px-4",
+          isMobile ? "top-2 max-w-xs left-2 translate-x-0" : "top-4 left-1/2 -translate-x-1/2 max-w-md"
+        )}>
           <CareerSearch onCareerSelect={handleCareerClick} />
         </div>
 
@@ -366,25 +391,68 @@ export default function CareerTree() {
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
           fitView
-          minZoom={0.1}
+          minZoom={0.05}
           maxZoom={2}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.4 }}
+          defaultViewport={{ x: 0, y: 0, zoom: isMobile ? 0.25 : 0.4 }}
+          // Mobile touch settings
+          panOnScroll={!isMobile}
+          panOnDrag={true}
+          zoomOnPinch={true}
+          zoomOnScroll={!isMobile}
+          zoomOnDoubleClick={true}
+          preventScrolling={true}
+          // Larger hit areas on mobile
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={true}
         >
           <Background color="hsl(36 20% 88%)" gap={24} size={1} />
-          <Controls className="bg-card border border-border rounded-lg shadow-lg" />
-          <MiniMap
-            className="bg-card border border-border rounded-lg shadow-lg"
-            nodeColor={(node) => {
-              if (node.type === 'root') return 'hsl(42 100% 50%)';
-              if (node.type === 'category') return 'hsl(42 100% 50%)';
-              if (node.type === 'subcategory') return 'hsl(36 28% 35%)';
-              if (node.data?.isFocused) return 'hsl(42 80% 60%)';
-              if (node.data?.isSelected) return 'hsl(42 100% 50%)';
-              if (node.data?.isFiltered) return 'hsl(0 0% 85%)';
-              return 'hsl(36 20% 88%)';
-            }}
-          />
+          {/* Hide default controls on mobile - we use custom ones */}
+          {!isMobile && (
+            <Controls className="bg-card border border-border rounded-lg shadow-lg" />
+          )}
+          {/* Hide minimap on mobile to save space */}
+          {!isMobile && (
+            <MiniMap
+              className="bg-card border border-border rounded-lg shadow-lg"
+              nodeColor={(node) => {
+                if (node.type === 'root') return 'hsl(42 100% 50%)';
+                if (node.type === 'category') return 'hsl(42 100% 50%)';
+                if (node.type === 'subcategory') return 'hsl(36 28% 35%)';
+                if (node.data?.isFocused) return 'hsl(42 80% 60%)';
+                if (node.data?.isSelected) return 'hsl(42 100% 50%)';
+                if (node.data?.isFiltered) return 'hsl(0 0% 85%)';
+                return 'hsl(36 20% 88%)';
+              }}
+            />
+          )}
         </ReactFlow>
+
+        {/* Mobile Controls */}
+        {isMobile && (
+          <MobileTreeControls
+            selectedPersonalities={selectedPersonalities}
+            selectedInterests={selectedInterests}
+            selectedSalaryRange={selectedSalaryRange}
+            selectedEducationLevel={selectedEducationLevel}
+            selectedGrowthRate={selectedGrowthRate}
+            remoteOnly={remoteOnly}
+            onPersonalityChange={setSelectedPersonalities}
+            onInterestChange={setSelectedInterests}
+            onSalaryRangeChange={setSelectedSalaryRange}
+            onEducationLevelChange={setSelectedEducationLevel}
+            onGrowthRateChange={setSelectedGrowthRate}
+            onRemoteOnlyChange={setRemoteOnly}
+            recommendedCareer={selectedCareer}
+            shortlist={shortlist}
+            onRemoveFromShortlist={removeFromShortlist}
+            onCompare={handleCompare}
+            onCareerClick={handleCareerClick}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onFitView={handleFitView}
+          />
+        )}
       </div>
 
       <CareerDetailPanel
@@ -405,5 +473,14 @@ export default function CareerTree() {
 
       <AIChatButton />
     </div>
+  );
+}
+
+// Wrapper component to provide ReactFlowProvider
+export default function CareerTree() {
+  return (
+    <ReactFlowProvider>
+      <CareerTreeContent />
+    </ReactFlowProvider>
   );
 }
