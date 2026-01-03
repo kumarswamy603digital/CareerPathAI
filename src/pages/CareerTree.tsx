@@ -7,6 +7,8 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useReactFlow,
+  ReactFlowProvider,
   Node,
   Edge,
 } from '@xyflow/react';
@@ -22,6 +24,8 @@ import { getCareerDetails, CareerDetails, careerDetails } from '@/data/careerDet
 import { Personality, Interest } from '@/data/careerData';
 import { useCareerShortlist } from '@/hooks/useCareerShortlist';
 import { useCareerHistory } from '@/hooks/useCareerHistory';
+import { useTreeKeyboardNavigation } from '@/hooks/useTreeKeyboardNavigation';
+
 const nodeTypes = {
   career: CareerNode,
   category: CategoryNode,
@@ -32,7 +36,8 @@ const nodeTypes = {
 function generateNodesAndEdges(
   filteredOutCareers: Set<string>,
   selectedCareer: string | null,
-  onCareerClick: (name: string) => void
+  onCareerClick: (name: string) => void,
+  focusedCareer: string | null
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -105,6 +110,7 @@ function generateNodesAndEdges(
 
         const isFiltered = filteredOutCareers.has(career.name);
         const isSelected = selectedCareer === career.name;
+        const isFocused = focusedCareer === career.name;
 
         nodes.push({
           id: careerId,
@@ -112,8 +118,9 @@ function generateNodesAndEdges(
           position: { x: careerX, y: careerY },
           data: {
             label: career.name,
-            isFiltered: isFiltered && !isSelected, // Don't gray out if it's the selected career
+            isFiltered: isFiltered && !isSelected && !isFocused, // Don't gray out if it's the selected or focused career
             isSelected,
+            isFocused,
             onCareerClick,
           },
         });
@@ -289,20 +296,26 @@ export default function CareerTree() {
     return filtered;
   }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel, selectedGrowthRate, remoteOnly]);
 
+  // Keyboard navigation hook
+  const { focusedCareer, isNavigating, focusedCareerIndex, totalCareers } = useTreeKeyboardNavigation({
+    onCareerSelect: handleCareerClick,
+    filteredOutCareers,
+  });
+
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
-    [filteredOutCareers, selectedCareer, handleCareerClick]
+    () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick, focusedCareer),
+    [filteredOutCareers, selectedCareer, handleCareerClick, focusedCareer]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  // Update nodes when filters change
+  // Update nodes when filters or focused career change
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick);
+    const { nodes: newNodes, edges: newEdges } = generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick, focusedCareer);
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [filteredOutCareers, selectedCareer, handleCareerClick, setNodes, setEdges]);
+  }, [filteredOutCareers, selectedCareer, handleCareerClick, focusedCareer, setNodes, setEdges]);
 
   return (
     <div className="h-screen w-full flex bg-card">
@@ -327,6 +340,20 @@ export default function CareerTree() {
       />
 
       <div className="flex-1 relative">
+        {/* Keyboard Navigation Indicator */}
+        {isNavigating && focusedCareer && (
+          <div className="absolute top-4 right-4 z-20 bg-card border border-border rounded-lg shadow-lg px-4 py-2">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Navigating:</span>
+              <span className="font-medium text-primary">{focusedCareer}</span>
+              <span className="text-muted-foreground">({focusedCareerIndex + 1}/{totalCareers})</span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              ↑↓←→ Navigate • Enter Select • Esc Exit
+            </div>
+          </div>
+        )}
+
         {/* Global Career Search */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
           <CareerSearch onCareerSelect={handleCareerClick} />
@@ -351,6 +378,7 @@ export default function CareerTree() {
               if (node.type === 'root') return 'hsl(42 100% 50%)';
               if (node.type === 'category') return 'hsl(42 100% 50%)';
               if (node.type === 'subcategory') return 'hsl(36 28% 35%)';
+              if (node.data?.isFocused) return 'hsl(42 80% 60%)';
               if (node.data?.isSelected) return 'hsl(42 100% 50%)';
               if (node.data?.isFiltered) return 'hsl(0 0% 85%)';
               return 'hsl(36 20% 88%)';

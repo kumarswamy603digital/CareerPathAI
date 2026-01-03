@@ -6,6 +6,7 @@ interface CareerNodeProps {
     label: string;
     isFiltered: boolean;
     isSelected?: boolean;
+    isFocused?: boolean;
     onCareerClick?: (name: string) => void;
   };
 }
@@ -24,7 +25,8 @@ export function CareerNode({ data }: CareerNodeProps) {
         'px-4 py-2 rounded-lg border-2 transition-all duration-300 min-w-[130px] text-center cursor-pointer',
         'bg-card border-border hover:glow-amber hover:scale-105',
         data.isSelected && 'border-primary bg-accent ring-2 ring-primary/30 glow-amber',
-        data.isFiltered && !data.isSelected && 'opacity-40 grayscale bg-muted-node border-muted-node'
+        data.isFocused && !data.isSelected && 'border-primary/60 ring-2 ring-primary/20 scale-105',
+        data.isFiltered && !data.isSelected && !data.isFocused && 'opacity-40 grayscale bg-muted-node border-muted-node'
       )}
     >
       <Handle type="target" position={Position.Top} className="!bg-border !w-2 !h-2" />
@@ -32,7 +34,8 @@ export function CareerNode({ data }: CareerNodeProps) {
         className={cn(
           'text-sm font-medium',
           data.isSelected ? 'text-primary font-semibold' : 'text-foreground',
-          data.isFiltered && !data.isSelected && 'text-muted-foreground'
+          data.isFocused && !data.isSelected && 'text-primary',
+          data.isFiltered && !data.isSelected && !data.isFocused && 'text-muted-foreground'
         )}
       >
         {data.label}
