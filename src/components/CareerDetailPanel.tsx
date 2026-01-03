@@ -259,22 +259,57 @@ export function CareerDetailPanel({
             </div>
           </div>
 
-          {/* Skills Required */}
+          {/* Skills Gap Analysis */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-foreground font-medium">
               <Zap className="w-5 h-5 text-primary" />
-              <span>Skills Required</span>
+              <span>Skills Gap Analysis</span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {career.skills.map((skill) => (
-                <Badge
-                  key={skill}
-                  variant="secondary"
-                  className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                >
-                  {skill}
-                </Badge>
-              ))}
+            <div className="bg-gradient-to-br from-primary/5 to-accent/50 rounded-lg p-4 border border-primary/20">
+              <p className="text-sm text-muted-foreground mb-3">
+                <span className="font-medium text-foreground">To succeed as a {career.name},</span> you need to learn:
+              </p>
+              <div className="space-y-3">
+                {career.skills.map((skill, index) => {
+                  // Determine priority based on position (first skills are more essential)
+                  const priority = index < 2 ? 'Essential' : index < 4 ? 'Important' : 'Helpful';
+                  const priorityColors = {
+                    'Essential': 'bg-red-100 text-red-700 border-red-200',
+                    'Important': 'bg-amber-100 text-amber-700 border-amber-200',
+                    'Helpful': 'bg-green-100 text-green-700 border-green-200'
+                  };
+                  const priorityIcons = {
+                    'Essential': '🔴',
+                    'Important': '🟡',
+                    'Helpful': '🟢'
+                  };
+                  
+                  return (
+                    <div 
+                      key={skill} 
+                      className="flex items-center gap-3 bg-background/80 rounded-md p-2.5 border border-border/50"
+                    >
+                      <span className="text-sm">{priorityIcons[priority]}</span>
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-foreground">{skill}</span>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={cn("text-[10px] px-2 py-0.5", priorityColors[priority])}
+                      >
+                        {priority}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/50">
+                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1">🔴 Essential</span>
+                  <span className="inline-flex items-center gap-1">🟡 Important</span>
+                  <span className="inline-flex items-center gap-1">🟢 Helpful</span>
+                </p>
+              </div>
             </div>
           </div>
 
