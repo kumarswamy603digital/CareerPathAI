@@ -25,8 +25,10 @@ import {
   RefreshCw,
   History,
   Briefcase,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
+import { exportCareerRecommendationsPdf } from '@/lib/exportPdf';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -159,6 +161,15 @@ const Settings = () => {
     } else {
       toast.error('Failed to delete assessment');
     }
+  };
+
+  const handleExportPdf = () => {
+    if (assessmentHistory.length === 0) {
+      toast.error('No assessments to export');
+      return;
+    }
+    exportCareerRecommendationsPdf(assessmentHistory, user?.email);
+    toast.success('PDF downloaded successfully');
   };
 
   if (loading) {
@@ -415,13 +426,28 @@ const Settings = () => {
         {/* Assessment History */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <History className="w-5 h-5 text-primary" />
-              Assessment History
-            </CardTitle>
-            <CardDescription>
-              View your past career assessments and recommendations over time
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <History className="w-5 h-5 text-primary" />
+                  Assessment History
+                </CardTitle>
+                <CardDescription>
+                  View your past career assessments and recommendations over time
+                </CardDescription>
+              </div>
+              {assessmentHistory.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportPdf}
+                  className="gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {historyLoading ? (
