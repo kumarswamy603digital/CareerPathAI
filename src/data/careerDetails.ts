@@ -1,4 +1,11 @@
 // Extended career details for the detail panel
+export interface CareerTrajectoryLevel {
+  title: string;
+  yearsExperience: string;
+  salaryRange: { min: number; max: number };
+  responsibilities: string[];
+}
+
 export interface CareerDetails {
   id: string;
   name: string;
@@ -12,7 +19,45 @@ export interface CareerDetails {
   education: string[];
   jobOutlook: 'Declining' | 'Stable' | 'Growing' | 'High Demand';
   jobOutlookDescription: string;
+  trajectory?: CareerTrajectoryLevel[];
 }
+
+// Default trajectory generator for careers without custom trajectory
+export const getDefaultTrajectory = (career: CareerDetails): CareerTrajectoryLevel[] => {
+  const baseMin = career.salaryRange.min;
+  const baseMax = career.salaryRange.max;
+  
+  return [
+    {
+      title: `Junior ${career.name}`,
+      yearsExperience: '0-2 years',
+      salaryRange: { min: Math.round(baseMin * 0.7), max: Math.round(baseMin * 1.1) },
+      responsibilities: ['Learn core skills', 'Work under supervision', 'Complete assigned tasks', 'Build foundational knowledge']
+    },
+    {
+      title: `Mid-Level ${career.name}`,
+      yearsExperience: '2-5 years',
+      salaryRange: { min: Math.round(baseMin * 1.0), max: Math.round((baseMin + baseMax) / 2) },
+      responsibilities: ['Work independently', 'Mentor juniors', 'Own small projects', 'Collaborate with team']
+    },
+    {
+      title: `Senior ${career.name}`,
+      yearsExperience: '5-10 years',
+      salaryRange: { min: Math.round((baseMin + baseMax) / 2), max: Math.round(baseMax * 0.95) },
+      responsibilities: ['Lead projects', 'Make technical decisions', 'Guide team direction', 'Drive best practices']
+    },
+    {
+      title: `Lead ${career.name}`,
+      yearsExperience: '10+ years',
+      salaryRange: { min: Math.round(baseMax * 0.9), max: Math.round(baseMax * 1.3) },
+      responsibilities: ['Set strategic vision', 'Manage teams', 'Shape department goals', 'Executive decisions']
+    }
+  ];
+};
+
+export const getCareerTrajectory = (career: CareerDetails): CareerTrajectoryLevel[] => {
+  return career.trajectory || getDefaultTrajectory(career);
+};
 
 export const careerDetails: Record<string, CareerDetails> = {
   // Technology - Software Engineering
