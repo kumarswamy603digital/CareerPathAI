@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareResults } from '@/components/ShareResults';
 import { CareerDetails, formatSalaryRange, getCareerTrajectory } from '@/data/careerDetails';
 import { getResourcesForCareer, getPlatformColor } from '@/data/learningResources';
 import { getVideosForCareer } from '@/data/careerVideos';
@@ -101,20 +102,27 @@ export function CareerDetailPanel({
             <SheetTitle className="text-2xl font-serif text-foreground">
               {career.name}
             </SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onToggleShortlist?.(career.name)}
-              className={cn(
-                "shrink-0 transition-colors",
-                isInShortlist 
-                  ? "text-red-500 hover:text-red-600" 
-                  : "text-muted-foreground hover:text-red-500"
-              )}
-              aria-label={isInShortlist ? "Remove from shortlist" : "Add to shortlist"}
-            >
-              <Heart className={cn("w-5 h-5", isInShortlist && "fill-current")} />
-            </Button>
+            <div className="flex items-center gap-1">
+              <ShareResults 
+                careerName={career.name} 
+                description={career.description}
+                variant="icon"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onToggleShortlist?.(career.name)}
+                className={cn(
+                  "shrink-0 transition-colors",
+                  isInShortlist 
+                    ? "text-red-500 hover:text-red-600" 
+                    : "text-muted-foreground hover:text-red-500"
+                )}
+                aria-label={isInShortlist ? "Remove from shortlist" : "Add to shortlist"}
+              >
+                <Heart className={cn("w-5 h-5", isInShortlist && "fill-current")} />
+              </Button>
+            </div>
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
             {career.description}

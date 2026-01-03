@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ShareResults } from '@/components/ShareResults';
 import { 
   PageLoadingSkeleton,
   DashboardHeaderSkeleton,
@@ -128,12 +129,22 @@ const Dashboard = () => {
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-            Welcome back{profile?.recommended_career ? `, future ${profile.recommended_career}` : ''}!
-          </h1>
-          <p className="text-muted-foreground">
-            Track your career exploration journey and saved opportunities.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+                Welcome back{profile?.recommended_career ? `, future ${profile.recommended_career}` : ''}!
+              </h1>
+              <p className="text-muted-foreground">
+                Track your career exploration journey and saved opportunities.
+              </p>
+            </div>
+            {profile?.recommended_career && (
+              <ShareResults 
+                careerName={profile.recommended_career} 
+                description={careerDetails[profile.recommended_career]?.description}
+              />
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
