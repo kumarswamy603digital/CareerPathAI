@@ -11,7 +11,7 @@ import {
   Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { FilterPanel, SalaryRange, salaryRanges } from '@/components/FilterPanel';
+import { FilterPanel, SalaryRange, salaryRanges, EducationLevel, educationLevels } from '@/components/FilterPanel';
 import { AIChatButton } from '@/components/AIChatButton';
 import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
@@ -144,6 +144,7 @@ export default function CareerTree() {
   const [selectedPersonalities, setSelectedPersonalities] = useState<Personality[]>(initialPersonalities);
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>(initialInterests);
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<SalaryRange>('all');
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState<EducationLevel>('all');
   const [selectedCareer] = useState<string | null>(initialCareer);
   
   // Detail panel state
@@ -188,7 +189,11 @@ export default function CareerTree() {
     const salaryMin = salaryFilter?.min ?? 0;
     const salaryMax = salaryFilter?.max ?? Infinity;
 
-    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all') {
+    // Get education filter keywords
+    const educationFilter = educationLevels.find(e => e.value === selectedEducationLevel);
+    const educationKeywords = educationFilter?.keywords ?? [];
+
+    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all' && selectedEducationLevel === 'all') {
       return filtered;
     }
 
@@ -198,6 +203,7 @@ export default function CareerTree() {
           let matchesPersonality = selectedPersonalities.length === 0;
           let matchesInterest = selectedInterests.length === 0;
           let matchesSalary = selectedSalaryRange === 'all';
+          let matchesEducation = selectedEducationLevel === 'all';
 
           if (selectedPersonalities.length > 0) {
             matchesPersonality = selectedPersonalities.some(p => 
@@ -223,7 +229,21 @@ export default function CareerTree() {
             }
           }
 
-          if (!matchesPersonality || !matchesInterest || !matchesSalary) {
+          // Check education level if filter is active
+          if (selectedEducationLevel !== 'all') {
+            const details = careerDetails[career.name];
+            if (details && details.education) {
+              // Career matches if any of its education options contain the filter keywords
+              matchesEducation = details.education.some(edu => 
+                educationKeywords.some(keyword => edu.toLowerCase().includes(keyword.toLowerCase()))
+              );
+            } else {
+              // If no education data, don't filter out
+              matchesEducation = true;
+            }
+          }
+
+          if (!matchesPersonality || !matchesInterest || !matchesSalary || !matchesEducation) {
             filtered.add(career.name);
           }
         });
@@ -231,7 +251,7 @@ export default function CareerTree() {
     });
 
     return filtered;
-  }, [selectedPersonalities, selectedInterests, selectedSalaryRange]);
+  }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
@@ -254,9 +274,11 @@ export default function CareerTree() {
         selectedPersonalities={selectedPersonalities}
         selectedInterests={selectedInterests}
         selectedSalaryRange={selectedSalaryRange}
+        selectedEducationLevel={selectedEducationLevel}
         onPersonalityChange={setSelectedPersonalities}
         onInterestChange={setSelectedInterests}
         onSalaryRangeChange={setSelectedSalaryRange}
+        onEducationLevelChange={setSelectedEducationLevel}
         recommendedCareer={selectedCareer}
         shortlist={shortlist}
         onRemoveFromShortlist={removeFromShortlist}
