@@ -1,13 +1,31 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, Users, MessageSquare } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, MessageSquare, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { InviteFriends } from '@/components/InviteFriends';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully"
+      });
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -23,7 +41,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center relative">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        {isAuthenticated && (
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="Sign out">
+            <LogOut className="w-5 h-5" />
+          </Button>
+        )}
         <ThemeToggle />
       </div>
       <div className="text-center max-w-2xl mx-auto px-6">
