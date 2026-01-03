@@ -5,8 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CareerResultModal } from '@/components/CareerResultModal';
+import { PersonalityQuiz } from '@/components/PersonalityQuiz';
 import { toast } from 'sonner';
-import { Mic, MicOff, Compass, Volume2, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Compass, Volume2, Loader2, ClipboardList } from 'lucide-react';
 
 const ELEVENLABS_AGENT_ID = 'agent_8501k18x4qeee61vtwnh9g56b0em';
 
@@ -23,6 +24,7 @@ export default function Onboarding() {
   const [userId, setUserId] = useState<string | null>(null);
   const [careerResult, setCareerResult] = useState<CareerResult | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -92,15 +94,23 @@ export default function Onboarding() {
   const handleRedoConversation = () => {
     setShowResult(false);
     setCareerResult(null);
+    setShowQuiz(false);
     // End current session if connected
     if (conversation.status === 'connected') {
       conversation.endSession();
     }
   };
 
+  const handleQuizComplete = (result: CareerResult) => {
+    setCareerResult(result);
+    setShowQuiz(false);
+    setShowResult(true);
+  };
+
   const handleCloseModal = () => {
     setShowResult(false);
     setCareerResult(null);
+    setShowQuiz(false);
   };
 
   const conversation = useConversation({
@@ -147,6 +157,18 @@ export default function Onboarding() {
   const isConnected = conversation.status === 'connected';
   const isSpeaking = conversation.isSpeaking;
 
+  // Show quiz mode
+  if (showQuiz) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <PersonalityQuiz
+          onComplete={handleQuizComplete}
+          onCancel={() => setShowQuiz(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-lg bg-card border-border shadow-xl">
@@ -181,27 +203,38 @@ export default function Onboarding() {
             )}
           </div>
 
-          {/* Main action button */}
-          <div className="flex justify-center">
+          {/* Main action buttons */}
+          <div className="flex flex-col items-center gap-3">
             {!isConnected ? (
-              <Button
-                size="lg"
-                onClick={startConversation}
-                disabled={isConnecting}
-                className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-5 h-5" />
-                    Start Conversation
-                  </>
-                )}
-              </Button>
+              <>
+                <Button
+                  size="lg"
+                  onClick={startConversation}
+                  disabled={isConnecting}
+                  className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full max-w-xs"
+                >
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-5 h-5" />
+                      Start Voice Chat
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setShowQuiz(true)}
+                  className="gap-2 px-8 py-6 w-full max-w-xs"
+                >
+                  <ClipboardList className="w-5 h-5" />
+                  Take Personality Quiz
+                </Button>
+              </>
             ) : (
               <Button
                 size="lg"
@@ -219,10 +252,9 @@ export default function Onboarding() {
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <h4 className="font-medium text-sm font-serif">How it works:</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Click "Start Conversation" and allow microphone access</li>
-              <li>• Talk naturally about your interests, hobbies, and strengths</li>
-              <li>• The AI will ask questions to understand your personality</li>
-              <li>• Once complete, you'll get your personalized career recommendation</li>
+              <li>• <strong>Voice Chat:</strong> Talk naturally about your interests and strengths</li>
+              <li>• <strong>Quiz:</strong> Answer questions if you prefer typing</li>
+              <li>• The AI will analyze your responses and recommend careers</li>
             </ul>
           </div>
 
