@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -18,7 +18,14 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 mb-10">
+        <div className="grid gap-4 md:grid-cols-3 mb-10">
+          <div className="p-6 rounded-xl bg-card border border-border">
+            <Mic className="w-8 h-8 text-primary mb-3" />
+            <h3 className="font-semibold mb-2">AI Career Advisor</h3>
+            <p className="text-sm text-muted-foreground">
+              Have a voice conversation to discover your ideal career
+            </p>
+          </div>
           <div className="p-6 rounded-xl bg-card border border-border">
             <GitBranch className="w-8 h-8 text-primary mb-3" />
             <h3 className="font-semibold mb-2">Visual Career Tree</h3>
@@ -35,12 +42,20 @@ const Index = () => {
           </div>
         </div>
 
-        <Link to="/tree">
-          <Button size="lg" className="text-lg px-8 py-6">
-            Explore Career Tree
-            <GitBranch className="w-5 h-5 ml-2" />
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link to="/auth">
+            <Button size="lg" className="text-lg px-8 py-6">
+              Get Started
+              <Mic className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+          <Link to="/tree">
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
+              Explore Careers
+              <GitBranch className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
