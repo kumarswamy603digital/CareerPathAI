@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign, GraduationCap } from 'lucide-react';
 import { personalities, interests, Personality, Interest } from '@/data/careerData';
 import { cn } from '@/lib/utils';
 
 export type SalaryRange = 'all' | '0-50k' | '50k-100k' | '100k-150k' | '150k+';
+export type EducationLevel = 'all' | 'no-degree' | 'bachelors' | 'masters' | 'phd';
 
 export const salaryRanges: { value: SalaryRange; label: string; min: number; max: number }[] = [
   { value: 'all', label: 'All Salaries', min: 0, max: Infinity },
@@ -18,13 +19,23 @@ export const salaryRanges: { value: SalaryRange; label: string; min: number; max
   { value: '150k+', label: '$150k+', min: 150000, max: Infinity },
 ];
 
+export const educationLevels: { value: EducationLevel; label: string; keywords: string[] }[] = [
+  { value: 'all', label: 'All Education Levels', keywords: [] },
+  { value: 'no-degree', label: 'No Degree Required', keywords: ['Self-taught', 'Bootcamp', 'Certificate', 'No formal', 'Apprenticeship', 'High School', 'Trade'] },
+  { value: 'bachelors', label: "Bachelor's Degree", keywords: ["Bachelor's", 'BA ', 'BS ', 'BFA', 'Undergraduate'] },
+  { value: 'masters', label: "Master's Degree", keywords: ["Master's", 'MA ', 'MS ', 'MBA', 'MFA', 'Graduate'] },
+  { value: 'phd', label: 'PhD / Doctorate', keywords: ['PhD', 'Doctorate', 'Ph.D', 'Doctor of', 'MD', 'JD'] },
+];
+
 interface FilterPanelProps {
   selectedPersonalities: Personality[];
   selectedInterests: Interest[];
   selectedSalaryRange: SalaryRange;
+  selectedEducationLevel: EducationLevel;
   onPersonalityChange: (personalities: Personality[]) => void;
   onInterestChange: (interests: Interest[]) => void;
   onSalaryRangeChange: (range: SalaryRange) => void;
+  onEducationLevelChange: (level: EducationLevel) => void;
   recommendedCareer?: string | null;
   shortlist?: string[];
   onRemoveFromShortlist?: (careerName: string) => void;
@@ -36,9 +47,11 @@ export function FilterPanel({
   selectedPersonalities,
   selectedInterests,
   selectedSalaryRange,
+  selectedEducationLevel,
   onPersonalityChange,
   onInterestChange,
   onSalaryRangeChange,
+  onEducationLevelChange,
   recommendedCareer,
   shortlist = [],
   onRemoveFromShortlist,
@@ -48,6 +61,7 @@ export function FilterPanel({
   const [personalityOpen, setPersonalityOpen] = useState(true);
   const [interestOpen, setInterestOpen] = useState(true);
   const [salaryOpen, setSalaryOpen] = useState(true);
+  const [educationOpen, setEducationOpen] = useState(true);
   const [shortlistOpen, setShortlistOpen] = useState(true);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
@@ -71,9 +85,10 @@ export function FilterPanel({
     onPersonalityChange([]);
     onInterestChange([]);
     onSalaryRangeChange('all');
+    onEducationLevelChange('all');
   };
 
-  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all';
+  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all';
 
   const toggleCompareSelection = (careerName: string) => {
     setSelectedForCompare(prev => {
@@ -207,6 +222,35 @@ export function FilterPanel({
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Education Level Filter */}
+          <Collapsible open={educationOpen} onOpenChange={setEducationOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-sidebar-accent rounded-lg transition-colors">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-primary" />
+                <span className="font-medium text-sidebar-foreground">Education Level</span>
+              </div>
+              {educationOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="flex flex-col gap-1">
+                {educationLevels.map(level => (
+                  <button
+                    key={level.value}
+                    onClick={() => onEducationLevelChange(level.value)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left",
+                      selectedEducationLevel === level.value
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-sidebar-accent text-sidebar-foreground"
+                    )}
+                  >
+                    {level.label}
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Shortlist Section */}
           {shortlist.length > 0 && (
             <Collapsible open={shortlistOpen} onOpenChange={setShortlistOpen}>
@@ -275,10 +319,12 @@ export function FilterPanel({
           <p className="text-sm text-muted-foreground">
             Showing careers matching: 
             {selectedPersonalities.length > 0 && ` ${selectedPersonalities.length} personality type(s)`}
-            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all') && ' &'}
+            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all') && ' &'}
             {selectedInterests.length > 0 && ` ${selectedInterests.length} interest(s)`}
-            {selectedInterests.length > 0 && selectedSalaryRange !== 'all' && ' &'}
+            {selectedInterests.length > 0 && (selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all') && ' &'}
             {selectedSalaryRange !== 'all' && ` ${salaryRanges.find(r => r.value === selectedSalaryRange)?.label}`}
+            {selectedSalaryRange !== 'all' && selectedEducationLevel !== 'all' && ' &'}
+            {selectedEducationLevel !== 'all' && ` ${educationLevels.find(e => e.value === selectedEducationLevel)?.label}`}
           </p>
         </div>
       )}
