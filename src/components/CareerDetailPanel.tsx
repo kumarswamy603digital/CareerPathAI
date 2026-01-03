@@ -1,6 +1,7 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { CareerDetails, formatSalaryRange } from '@/data/careerDetails';
 import { 
   DollarSign, 
@@ -10,7 +11,8 @@ import {
   TrendingDown, 
   Minus,
   Zap,
-  BookOpen
+  BookOpen,
+  Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +20,8 @@ interface CareerDetailPanelProps {
   career: CareerDetails | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isInShortlist?: boolean;
+  onToggleShortlist?: (careerName: string) => void;
 }
 
 const JobOutlookIcon = ({ outlook }: { outlook: CareerDetails['jobOutlook'] }) => {
@@ -49,16 +53,38 @@ const JobOutlookBadge = ({ outlook }: { outlook: CareerDetails['jobOutlook'] }) 
   );
 };
 
-export function CareerDetailPanel({ career, open, onOpenChange }: CareerDetailPanelProps) {
+export function CareerDetailPanel({ 
+  career, 
+  open, 
+  onOpenChange,
+  isInShortlist = false,
+  onToggleShortlist
+}: CareerDetailPanelProps) {
   if (!career) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-card">
         <SheetHeader className="text-left pb-4">
-          <SheetTitle className="text-2xl font-serif text-foreground">
-            {career.name}
-          </SheetTitle>
+          <div className="flex items-start justify-between gap-2">
+            <SheetTitle className="text-2xl font-serif text-foreground">
+              {career.name}
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onToggleShortlist?.(career.name)}
+              className={cn(
+                "shrink-0 transition-colors",
+                isInShortlist 
+                  ? "text-red-500 hover:text-red-600" 
+                  : "text-muted-foreground hover:text-red-500"
+              )}
+              aria-label={isInShortlist ? "Remove from shortlist" : "Add to shortlist"}
+            >
+              <Heart className={cn("w-5 h-5", isInShortlist && "fill-current")} />
+            </Button>
+          </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
             {career.description}
           </p>

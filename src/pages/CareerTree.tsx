@@ -17,6 +17,7 @@ import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { careerTree } from '@/data/careerTreeData';
 import { getCareerDetails, CareerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
+import { useCareerShortlist } from '@/hooks/useCareerShortlist';
 const nodeTypes = {
   career: CareerNode,
   category: CategoryNode,
@@ -145,6 +146,9 @@ export default function CareerTree() {
   const [detailPanelOpen, setDetailPanelOpen] = useState(false);
   const [selectedCareerDetails, setSelectedCareerDetails] = useState<CareerDetails | null>(null);
 
+  // Shortlist hook
+  const { isInShortlist, toggleShortlist } = useCareerShortlist();
+
   const handleCareerClick = useCallback((careerName: string) => {
     const details = getCareerDetails(careerName);
     if (details) {
@@ -245,6 +249,8 @@ export default function CareerTree() {
         career={selectedCareerDetails}
         open={detailPanelOpen}
         onOpenChange={setDetailPanelOpen}
+        isInShortlist={selectedCareerDetails ? isInShortlist(selectedCareerDetails.name) : false}
+        onToggleShortlist={toggleShortlist}
       />
     </div>
   );

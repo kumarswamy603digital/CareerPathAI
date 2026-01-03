@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_shortlist: {
+        Row: {
+          career_name: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          career_name: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          career_name?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
