@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CareerDetails, formatSalaryRange, getCareerTrajectory } from '@/data/careerDetails';
+import { getResourcesForCareer, getPlatformColor } from '@/data/learningResources';
 import { useLiveSalaryData } from '@/hooks/useLiveSalaryData';
 import { useJobDemand } from '@/hooks/useJobDemand';
 import { 
@@ -24,7 +25,9 @@ import {
   Clock,
   MapPin,
   Building2,
-  Users
+  Users,
+  ExternalLink,
+  PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSimilarCareers, hasCareerDetails } from '@/lib/careerSuggestions';
@@ -310,6 +313,56 @@ export function CareerDetailPanel({
                   <span className="inline-flex items-center gap-1">🟢 Helpful</span>
                 </p>
               </div>
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Learning Resources */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <PlayCircle className="w-5 h-5 text-primary" />
+              <span>Learning Resources</span>
+            </div>
+            <div className="space-y-2">
+              {getResourcesForCareer(career.name).map((resource, index) => (
+                <a
+                  key={index}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-accent/40 hover:bg-accent/70 rounded-lg p-3 border border-border/50 transition-all hover:border-primary/30 group"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors flex-1">
+                      {resource.title}
+                    </span>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge 
+                      variant="outline" 
+                      className={cn("text-[10px] px-2 py-0.5", getPlatformColor(resource.platform))}
+                    >
+                      {resource.platform}
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                      {resource.type}
+                    </Badge>
+                    {resource.duration && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {resource.duration}
+                      </span>
+                    )}
+                    {resource.free && (
+                      <Badge className="text-[10px] px-2 py-0.5 bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
+                        Free
+                      </Badge>
+                    )}
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
 
