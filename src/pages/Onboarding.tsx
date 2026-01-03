@@ -36,13 +36,15 @@ export default function Onboarding() {
 
   const saveCareerResults = async (params: { 
     interests: string[]; 
-    personality: string; 
+    personality: string[];  // Array as per ElevenLabs tool schema
     career: string;
   }) => {
     if (!userId) {
       toast.error('User not found');
       return 'Error: User not found';
     }
+
+    console.log('Saving career results:', params);
 
     const { error } = await supabase
       .from('profiles')
@@ -72,7 +74,7 @@ export default function Onboarding() {
 
   const conversation = useConversation({
     clientTools: {
-      career: async (params: { interests: string[]; personality: string; career: string }) => {
+      career: async (params: { interests: string[]; personality: string[]; career: string }) => {
         console.log('Career tool called with:', params);
         return await saveCareerResults(params);
       },
