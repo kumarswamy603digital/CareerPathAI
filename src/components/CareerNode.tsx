@@ -6,15 +6,23 @@ interface CareerNodeProps {
     label: string;
     isFiltered: boolean;
     isSelected?: boolean;
+    onCareerClick?: (name: string) => void;
   };
 }
 
 export function CareerNode({ data }: CareerNodeProps) {
+  const handleClick = () => {
+    if (data.onCareerClick) {
+      data.onCareerClick(data.label);
+    }
+  };
+
   return (
     <div
+      onClick={handleClick}
       className={cn(
         'px-4 py-2 rounded-lg border-2 transition-all duration-300 min-w-[130px] text-center cursor-pointer',
-        'bg-card border-border hover:glow-amber',
+        'bg-card border-border hover:glow-amber hover:scale-105',
         data.isSelected && 'border-primary bg-accent ring-2 ring-primary/30 glow-amber',
         data.isFiltered && !data.isSelected && 'opacity-40 grayscale bg-muted-node border-muted-node'
       )}

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ReactFlow,
@@ -13,9 +13,10 @@ import {
 import '@xyflow/react/dist/style.css';
 import { FilterPanel } from '@/components/FilterPanel';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
+import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { careerTree } from '@/data/careerTreeData';
+import { getCareerDetails, CareerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
-
 const nodeTypes = {
   career: CareerNode,
   category: CategoryNode,
@@ -25,7 +26,8 @@ const nodeTypes = {
 
 function generateNodesAndEdges(
   filteredOutCareers: Set<string>,
-  selectedCareer: string | null
+  selectedCareer: string | null,
+  onCareerClick: (name: string) => void
 ): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -107,6 +109,7 @@ function generateNodesAndEdges(
             label: career.name,
             isFiltered: isFiltered && !isSelected, // Don't gray out if it's the selected career
             isSelected,
+            onCareerClick,
           },
         });
 
@@ -137,6 +140,18 @@ export default function CareerTree() {
   const [selectedPersonalities, setSelectedPersonalities] = useState<Personality[]>(initialPersonalities);
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>(initialInterests);
   const [selectedCareer] = useState<string | null>(initialCareer);
+  
+  // Detail panel state
+  const [detailPanelOpen, setDetailPanelOpen] = useState(false);
+  const [selectedCareerDetails, setSelectedCareerDetails] = useState<CareerDetails | null>(null);
+
+  const handleCareerClick = useCallback((careerName: string) => {
+    const details = getCareerDetails(careerName);
+    if (details) {
+      setSelectedCareerDetails(details);
+      setDetailPanelOpen(true);
+    }
+  }, []);
 
   const filteredOutCareers = useMemo(() => {
     const filtered = new Set<string>();
@@ -174,8 +189,8 @@ export default function CareerTree() {
   }, [selectedPersonalities, selectedInterests]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => generateNodesAndEdges(filteredOutCareers, selectedCareer),
-    [filteredOutCareers, selectedCareer]
+    () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
+    [filteredOutCareers, selectedCareer, handleCareerClick]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -183,10 +198,10 @@ export default function CareerTree() {
 
   // Update nodes when filters change
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = generateNodesAndEdges(filteredOutCareers, selectedCareer);
+    const { nodes: newNodes, edges: newEdges } = generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick);
     setNodes(newNodes);
     setEdges(newEdges);
-  }, [filteredOutCareers, selectedCareer, setNodes, setEdges]);
+  }, [filteredOutCareers, selectedCareer, handleCareerClick, setNodes, setEdges]);
 
   return (
     <div className="h-screen w-full flex bg-card">
@@ -225,6 +240,12 @@ export default function CareerTree() {
           />
         </ReactFlow>
       </div>
+
+      <CareerDetailPanel
+        career={selectedCareerDetails}
+        open={detailPanelOpen}
+        onOpenChange={setDetailPanelOpen}
+      />
     </div>
   );
 }
