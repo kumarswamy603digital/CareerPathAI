@@ -14,6 +14,7 @@ interface CareerResult {
   interests: string[];
   personality: string[];
   career: string;
+  reasoning?: string;
 }
 
 export default function Onboarding() {
@@ -104,7 +105,7 @@ export default function Onboarding() {
 
   const conversation = useConversation({
     clientTools: {
-      career: async (params: { interests: string[]; personality: string[]; career: string }) => {
+      career: async (params: { interests: string[]; personality: string[]; career: string; reasoning?: string }) => {
         console.log('Career tool called with:', params);
         return await saveCareerResults(params);
       },
@@ -245,6 +246,7 @@ export default function Onboarding() {
           career={careerResult.career}
           interests={careerResult.interests}
           personality={careerResult.personality}
+          reasoning={careerResult.reasoning}
           onAccept={handleAcceptCareer}
           onRedo={handleRedoConversation}
           onClose={handleCloseModal}

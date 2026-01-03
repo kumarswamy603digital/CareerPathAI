@@ -1,4 +1,4 @@
-import { X, Check, RotateCcw, Sparkles } from 'lucide-react';
+import { X, Check, RotateCcw, Sparkles, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -6,6 +6,7 @@ interface CareerResultModalProps {
   career: string;
   interests: string[];
   personality: string[];
+  reasoning?: string;
   onAccept: () => void;
   onRedo: () => void;
   onClose: () => void;
@@ -15,6 +16,7 @@ export function CareerResultModal({
   career,
   interests,
   personality,
+  reasoning,
   onAccept,
   onRedo,
   onClose,
@@ -44,15 +46,30 @@ export function CareerResultModal({
         </div>
 
         {/* Career recommendation */}
-        <div className="px-8 py-6">
-          <div className="text-center mb-6">
+        <div className="px-8 py-6 space-y-5">
+          <div className="text-center">
             <h3 className="text-3xl font-serif font-bold text-primary glow-amber inline-block px-4 py-2 rounded-lg bg-accent/30">
               {career}
             </h3>
           </div>
 
+          {/* AI Reasoning Section */}
+          {reasoning && (
+            <div className="bg-accent/20 border border-accent rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lightbulb className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1">Why I recommended this:</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{reasoning}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Personality badges */}
-          <div className="mb-4">
+          <div>
             <p className="text-sm font-medium text-muted-foreground mb-2">Personality Types:</p>
             <div className="flex flex-wrap gap-2">
               {personality.map((p) => (
