@@ -17,7 +17,8 @@ import {
   Bell,
   Palette,
   Save,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 
 const Settings = () => {
@@ -25,6 +26,7 @@ const Settings = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resettingAssessment, setResettingAssessment] = useState(false);
   
   // Form states
   const [email, setEmail] = useState('');
@@ -111,6 +113,34 @@ const Settings = () => {
   const handleSavePreferences = () => {
     // Preferences would be saved to the database in a real app
     toast.success('Preferences saved successfully');
+  };
+
+  const handleRetakeAssessment = async () => {
+    if (!user) return;
+
+    setResettingAssessment(true);
+    
+    // Reset profile assessment data but keep history and shortlist intact
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        personality: null,
+        interests: null,
+        recommended_career: null,
+        onboarding_completed: false
+      })
+      .eq('user_id', user.id);
+
+    setResettingAssessment(false);
+
+    if (error) {
+      toast.error('Failed to reset assessment. Please try again.');
+    } else {
+      toast.success('Assessment reset! Redirecting to onboarding...');
+      setTimeout(() => {
+        navigate('/onboarding');
+      }, 500);
+    }
   };
 
   if (loading) {
@@ -330,6 +360,39 @@ const Settings = () => {
           <Save className="w-4 h-4 mr-2" />
           Save All Preferences
         </Button>
+
+        {/* Retake Assessment */}
+        <Card className="mt-6 border-amber-200 bg-amber-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <RefreshCw className="w-5 h-5 text-amber-600" />
+              Retake Career Assessment
+            </CardTitle>
+            <CardDescription>
+              Redo the personality quiz to get new career recommendations. Your saved careers and viewing history will be preserved.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={handleRetakeAssessment} 
+              disabled={resettingAssessment}
+              variant="outline"
+              className="w-full border-amber-300 hover:bg-amber-100"
+            >
+              {resettingAssessment ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retake Assessment
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
