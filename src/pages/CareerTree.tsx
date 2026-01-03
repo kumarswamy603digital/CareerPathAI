@@ -11,7 +11,7 @@ import {
   Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { FilterPanel, SalaryRange, salaryRanges, EducationLevel, educationLevels } from '@/components/FilterPanel';
+import { FilterPanel, SalaryRange, salaryRanges, EducationLevel, educationLevels, GrowthRate, growthRates } from '@/components/FilterPanel';
 import { AIChatButton } from '@/components/AIChatButton';
 import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
@@ -145,6 +145,7 @@ export default function CareerTree() {
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>(initialInterests);
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<SalaryRange>('all');
   const [selectedEducationLevel, setSelectedEducationLevel] = useState<EducationLevel>('all');
+  const [selectedGrowthRate, setSelectedGrowthRate] = useState<GrowthRate>('all');
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [selectedCareer] = useState<string | null>(initialCareer);
   
@@ -194,7 +195,11 @@ export default function CareerTree() {
     const educationFilter = educationLevels.find(e => e.value === selectedEducationLevel);
     const educationKeywords = educationFilter?.keywords ?? [];
 
-    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all' && selectedEducationLevel === 'all' && !remoteOnly) {
+    // Get growth rate filter
+    const growthFilter = growthRates.find(g => g.value === selectedGrowthRate);
+    const growthOutlook = growthFilter?.jobOutlook ?? '';
+
+    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all' && selectedEducationLevel === 'all' && selectedGrowthRate === 'all' && !remoteOnly) {
       return filtered;
     }
 
@@ -205,6 +210,7 @@ export default function CareerTree() {
           let matchesInterest = selectedInterests.length === 0;
           let matchesSalary = selectedSalaryRange === 'all';
           let matchesEducation = selectedEducationLevel === 'all';
+          let matchesGrowth = selectedGrowthRate === 'all';
           let matchesRemote = !remoteOnly;
 
           if (selectedPersonalities.length > 0) {
@@ -245,6 +251,17 @@ export default function CareerTree() {
             }
           }
 
+          // Check growth rate if filter is active
+          if (selectedGrowthRate !== 'all') {
+            const details = careerDetails[career.name];
+            if (details && details.jobOutlook) {
+              matchesGrowth = details.jobOutlook === growthOutlook;
+            } else {
+              // If no growth data, don't filter out
+              matchesGrowth = true;
+            }
+          }
+
           // Check remote compatibility if filter is active
           if (remoteOnly) {
             const details = careerDetails[career.name];
@@ -256,7 +273,7 @@ export default function CareerTree() {
             }
           }
 
-          if (!matchesPersonality || !matchesInterest || !matchesSalary || !matchesEducation || !matchesRemote) {
+          if (!matchesPersonality || !matchesInterest || !matchesSalary || !matchesEducation || !matchesGrowth || !matchesRemote) {
             filtered.add(career.name);
           }
         });
@@ -264,7 +281,7 @@ export default function CareerTree() {
     });
 
     return filtered;
-  }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel, remoteOnly]);
+  }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel, selectedGrowthRate, remoteOnly]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
@@ -288,11 +305,13 @@ export default function CareerTree() {
         selectedInterests={selectedInterests}
         selectedSalaryRange={selectedSalaryRange}
         selectedEducationLevel={selectedEducationLevel}
+        selectedGrowthRate={selectedGrowthRate}
         remoteOnly={remoteOnly}
         onPersonalityChange={setSelectedPersonalities}
         onInterestChange={setSelectedInterests}
         onSalaryRangeChange={setSelectedSalaryRange}
         onEducationLevelChange={setSelectedEducationLevel}
+        onGrowthRateChange={setSelectedGrowthRate}
         onRemoteOnlyChange={setRemoteOnly}
         recommendedCareer={selectedCareer}
         shortlist={shortlist}
