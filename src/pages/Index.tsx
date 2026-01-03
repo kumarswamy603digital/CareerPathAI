@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { InviteFriends } from '@/components/InviteFriends';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -77,6 +78,7 @@ const Index = () => {
                   <GitBranch className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
+              <InviteFriends />
             </>
           ) : (
             <>

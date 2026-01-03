@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ShareResults } from '@/components/ShareResults';
+import { InviteFriends } from '@/components/InviteFriends';
 import { 
   PageLoadingSkeleton,
   DashboardHeaderSkeleton,
@@ -106,6 +107,7 @@ const Dashboard = () => {
             <span className="text-xl font-serif font-bold text-primary">CareerPath</span>
           </Link>
           <div className="flex items-center gap-3">
+            <InviteFriends variant="compact" />
             <Link to="/tree">
               <Button variant="outline" size="sm" className="gap-2">
                 <GitBranch className="w-4 h-4" />
