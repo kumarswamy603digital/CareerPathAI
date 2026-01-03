@@ -85,31 +85,43 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
           created_at: string
+          display_name: string | null
           id: string
           interests: string[] | null
+          is_public: boolean | null
           onboarding_completed: boolean | null
           personality: string[] | null
+          public_slug: string | null
           recommended_career: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bio?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           interests?: string[] | null
+          is_public?: boolean | null
           onboarding_completed?: boolean | null
           personality?: string[] | null
+          public_slug?: string | null
           recommended_career?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bio?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           interests?: string[] | null
+          is_public?: boolean | null
           onboarding_completed?: boolean | null
           personality?: string[] | null
+          public_slug?: string | null
           recommended_career?: string | null
           updated_at?: string
           user_id?: string

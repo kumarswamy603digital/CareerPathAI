@@ -29,6 +29,7 @@ import {
   Download
 } from 'lucide-react';
 import { exportCareerRecommendationsPdf } from '@/lib/exportPdf';
+import { PublicProfileSettings } from '@/components/PublicProfileSettings';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -376,6 +377,9 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Public Profile */}
+        {user && <PublicProfileSettings userId={user.id} />}
 
         {/* Save Preferences Button */}
         <Button onClick={handleSavePreferences} className="w-full" size="lg">
