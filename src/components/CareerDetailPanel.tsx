@@ -2,7 +2,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CareerDetails, formatSalaryRange, getCareerTrajectory } from '@/data/careerDetails';
+import { useLiveSalaryData } from '@/hooks/useLiveSalaryData';
 import { 
   DollarSign, 
   GraduationCap, 
@@ -16,7 +18,9 @@ import {
   ArrowRight,
   Target,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Radio,
+  Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSimilarCareers, hasCareerDetails } from '@/lib/careerSuggestions';
@@ -67,9 +71,16 @@ export function CareerDetailPanel({
   onToggleShortlist,
   onViewCareer
 }: CareerDetailPanelProps) {
+  const { salary: liveSalary, isLoading: salaryLoading, isLive } = useLiveSalaryData(career?.name || null);
+  
   if (!career) return null;
   
   const similarCareers = getSimilarCareers(career.name, 3);
+
+  // Format live salary for display
+  const formatLiveSalary = (min: number, max: number) => {
+    return `$${(min / 1000).toFixed(0)}k - $${(max / 1000).toFixed(0)}k`;
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -105,12 +116,47 @@ export function CareerDetailPanel({
             <div className="flex items-center gap-2 text-foreground font-medium">
               <DollarSign className="w-5 h-5 text-primary" />
               <span>Salary Range</span>
+              {salaryLoading ? (
+                <Badge variant="outline" className="ml-auto text-xs gap-1 animate-pulse">
+                  <Clock className="w-3 h-3" />
+                  Loading...
+                </Badge>
+              ) : isLive ? (
+                <Badge variant="outline" className="ml-auto text-xs gap-1 bg-green-50 text-green-700 border-green-200">
+                  <Radio className="w-3 h-3" />
+                  Live Data
+                </Badge>
+              ) : liveSalary ? (
+                <Badge variant="outline" className="ml-auto text-xs gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                  BLS 2023
+                </Badge>
+              ) : null}
             </div>
             <div className="bg-accent/50 rounded-lg p-4 border border-border">
-              <p className="text-xl font-semibold text-foreground">
-                {formatSalaryRange(career.salaryRange)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">Annual (USD)</p>
+              {salaryLoading ? (
+                <Skeleton className="h-7 w-40" />
+              ) : liveSalary ? (
+                <>
+                  <p className="text-xl font-semibold text-foreground">
+                    {formatLiveSalary(liveSalary.min, liveSalary.max)}
+                  </p>
+                  {liveSalary.median && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Median: ${liveSalary.median.toLocaleString()}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Source: {liveSalary.source} • Updated: {liveSalary.lastUpdated}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xl font-semibold text-foreground">
+                    {formatSalaryRange(career.salaryRange)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Annual (USD) • Static Data</p>
+                </>
+              )}
             </div>
           </div>
 

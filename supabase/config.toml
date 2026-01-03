@@ -1,1 +1,7 @@
 project_id = "ssubaflcdejinnlyydpu"
+
+[functions.career-chat]
+verify_jwt = false
+
+[functions.fetch-salary-data]
+verify_jwt = false
