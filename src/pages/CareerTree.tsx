@@ -20,6 +20,7 @@ import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
 import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { CareerCompareModal } from '@/components/CareerCompareModal';
+import { TreeOnboardingTutorial, useTutorialStatus } from '@/components/TreeOnboardingTutorial';
 import { careerTree } from '@/data/careerTreeData';
 import { getCareerDetails, CareerDetails, careerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
@@ -149,6 +150,15 @@ function CareerTreeContent() {
   const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { hasCompletedTutorial, resetTutorial } = useTutorialStatus();
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Show tutorial for first-time users once status is determined
+  useEffect(() => {
+    if (hasCompletedTutorial === false) {
+      setShowTutorial(true);
+    }
+  }, [hasCompletedTutorial]);
   
   // Get initial values from URL params (from onboarding)
   const initialCareer = searchParams.get('career') || null;
@@ -337,8 +347,13 @@ function CareerTreeContent() {
   }, [fitView]);
 
   return (
-    <div className="h-screen w-full flex bg-card">
-      {/* Desktop Filter Panel */}
+    <>
+      {/* Onboarding Tutorial */}
+      {showTutorial && (
+        <TreeOnboardingTutorial onComplete={() => setShowTutorial(false)} />
+      )}
+      
+      <div className="h-screen w-full flex bg-card">
       {!isMobile && (
         <FilterPanel
           selectedPersonalities={selectedPersonalities}
@@ -473,6 +488,7 @@ function CareerTreeContent() {
 
       <AIChatButton />
     </div>
+    </>
   );
 }
 
