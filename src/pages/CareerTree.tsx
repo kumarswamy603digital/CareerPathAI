@@ -21,6 +21,7 @@ import { careerTree } from '@/data/careerTreeData';
 import { getCareerDetails, CareerDetails, careerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
 import { useCareerShortlist } from '@/hooks/useCareerShortlist';
+import { useCareerHistory } from '@/hooks/useCareerHistory';
 const nodeTypes = {
   career: CareerNode,
   category: CategoryNode,
@@ -156,6 +157,9 @@ export default function CareerTree() {
   // Shortlist hook
   const { shortlist, isInShortlist, toggleShortlist, removeFromShortlist } = useCareerShortlist();
 
+  // History hook
+  const { addToHistory } = useCareerHistory();
+
   // Compare modal state
   const [compareModalOpen, setCompareModalOpen] = useState(false);
   const [careersToCompare, setCareersToCompare] = useState<string[]>([]);
@@ -165,8 +169,10 @@ export default function CareerTree() {
     if (details) {
       setSelectedCareerDetails(details);
       setDetailPanelOpen(true);
+      // Track view in history
+      addToHistory(careerName);
     }
-  }, []);
+  }, [addToHistory]);
 
   const handleCompare = useCallback((careers: string[]) => {
     setCareersToCompare(careers);

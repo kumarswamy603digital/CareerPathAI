@@ -1,8 +1,24 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center max-w-2xl mx-auto px-6">
@@ -43,18 +59,37 @@ const Index = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/auth">
-            <Button size="lg" className="text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-              Get Started
-              <Mic className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-          <Link to="/tree">
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
-              Explore Careers
-              <GitBranch className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard">
+                <Button size="lg" className="text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                  My Dashboard
+                  <LayoutDashboard className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/tree">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
+                  Explore Careers
+                  <GitBranch className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/auth">
+                <Button size="lg" className="text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                  Get Started
+                  <Mic className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/tree">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
+                  Explore Careers
+                  <GitBranch className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

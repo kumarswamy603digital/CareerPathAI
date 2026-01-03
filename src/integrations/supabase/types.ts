@@ -35,6 +35,27 @@ export type Database = {
         }
         Relationships: []
       }
+      career_view_history: {
+        Row: {
+          career_name: string
+          id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          career_name: string
+          id?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          career_name?: string
+          id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
