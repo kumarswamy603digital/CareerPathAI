@@ -7,8 +7,15 @@ import { careerDetails } from '@/data/careerDetails';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { 
+  PageLoadingSkeleton,
+  DashboardHeaderSkeleton,
+  DashboardStatsSkeleton,
+  ProgressCardSkeleton,
+  CareerListSkeleton,
+  RecentActivitySkeleton,
+} from '@/components/LoadingSkeletons';
 import { 
   Compass, 
   Heart, 
@@ -82,15 +89,11 @@ const Dashboard = () => {
   const explorationProgress = Math.round((uniqueCareersViewed.length / totalCareers) * 100);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Compass className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingSkeleton icon={Compass} message="Loading your dashboard..." />;
   }
+
+  // Show skeleton for initial data loading
+  const isInitialLoad = shortlistLoading && historyLoading && !profile;
 
   return (
     <div className="min-h-screen bg-background">
@@ -242,11 +245,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               {shortlistLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
+                <CareerListSkeleton count={3} />
               ) : shortlist.length === 0 ? (
                 <div className="text-center py-8">
                   <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
@@ -333,11 +332,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               {historyLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
+                <RecentActivitySkeleton count={3} />
               ) : history.length === 0 ? (
                 <div className="text-center py-8">
                   <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
