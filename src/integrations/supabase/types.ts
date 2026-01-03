@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_history: {
+        Row: {
+          completed_at: string
+          id: string
+          interests: string[]
+          personality: string[]
+          recommended_career: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          id?: string
+          interests: string[]
+          personality: string[]
+          recommended_career: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          interests?: string[]
+          personality?: string[]
+          recommended_career?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       career_shortlist: {
         Row: {
           career_name: string

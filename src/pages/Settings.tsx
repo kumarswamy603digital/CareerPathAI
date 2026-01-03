@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { 
   Compass, 
   ArrowLeft,
@@ -18,7 +22,10 @@ import {
   Palette,
   Save,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  History,
+  Briefcase,
+  Trash2
 } from 'lucide-react';
 
 const Settings = () => {
@@ -27,6 +34,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [resettingAssessment, setResettingAssessment] = useState(false);
+  
+  const { history: assessmentHistory, loading: historyLoading, deleteFromHistory } = useAssessmentHistory();
   
   // Form states
   const [email, setEmail] = useState('');
@@ -140,6 +149,15 @@ const Settings = () => {
       setTimeout(() => {
         navigate('/onboarding');
       }, 500);
+    }
+  };
+
+  const handleDeleteAssessment = async (id: string) => {
+    const success = await deleteFromHistory(id);
+    if (success) {
+      toast.success('Assessment removed from history');
+    } else {
+      toast.error('Failed to delete assessment');
     }
   };
 
@@ -362,7 +380,7 @@ const Settings = () => {
         </Button>
 
         {/* Retake Assessment */}
-        <Card className="mt-6 border-amber-200 bg-amber-50/50">
+        <Card className="mb-6 border-amber-200 bg-amber-50/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <RefreshCw className="w-5 h-5 text-amber-600" />
@@ -393,6 +411,115 @@ const Settings = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Assessment History */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <History className="w-5 h-5 text-primary" />
+              Assessment History
+            </CardTitle>
+            <CardDescription>
+              View your past career assessments and recommendations over time
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {historyLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : assessmentHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <History className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground mb-2">No assessment history yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Complete an assessment to see your recommendations here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {assessmentHistory.map((assessment, index) => (
+                  <div
+                    key={assessment.id}
+                    className="p-4 rounded-lg border bg-card hover:bg-accent/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-primary" />
+                        <span className="font-semibold text-foreground">
+                          {assessment.recommended_career}
+                        </span>
+                        {index === 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            Current
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(assessment.completed_at), 'MMM d, yyyy')}
+                        </span>
+                        {index !== 0 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                            onClick={() => handleDeleteAssessment(assessment.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Personality Types
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {assessment.personality.map((type) => (
+                            <Badge 
+                              key={type} 
+                              variant="outline" 
+                              className="text-xs bg-primary/5 border-primary/20"
+                            >
+                              {type}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Interests
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {assessment.interests.map((interest) => (
+                            <Badge 
+                              key={interest} 
+                              variant="outline" 
+                              className="text-xs"
+                            >
+                              {interest}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Save Preferences Button */}
+        <Button onClick={handleSavePreferences} className="w-full" size="lg">
+          <Save className="w-4 h-4 mr-2" />
+          Save All Preferences
+        </Button>
       </main>
     </div>
   );
