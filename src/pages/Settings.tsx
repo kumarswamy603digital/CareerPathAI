@@ -1,0 +1,338 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import { 
+  Compass, 
+  ArrowLeft,
+  User,
+  Mail,
+  Lock,
+  Bell,
+  Palette,
+  Save,
+  Loader2
+} from 'lucide-react';
+
+const Settings = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Form states
+  const [email, setEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Preferences
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [careerAlerts, setCareerAlerts] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      if (!session) {
+        navigate('/auth');
+      } else {
+        setUser(session.user);
+        setEmail(session.user.email || '');
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate('/auth');
+      } else {
+        setUser(session.user);
+        setEmail(session.user.email || '');
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleUpdateEmail = async () => {
+    if (!email || email === user?.email) {
+      toast.error('Please enter a new email address');
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ email });
+    setSaving(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Confirmation email sent. Please check your inbox to verify your new email.');
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error('Please fill in all password fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setSaving(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+  };
+
+  const handleSavePreferences = () => {
+    // Preferences would be saved to the database in a real app
+    toast.success('Preferences saved successfully');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Compass className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <Compass className="w-8 h-8 text-primary" />
+            <span className="text-xl font-serif font-bold text-primary">CareerPath</span>
+          </Link>
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+            Profile Settings
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences.
+          </p>
+        </div>
+
+        {/* Account Information */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <User className="w-5 h-5 text-primary" />
+              Account Information
+            </CardTitle>
+            <CardDescription>
+              Your account details and email address
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleUpdateEmail} 
+                  disabled={saving || email === user?.email}
+                  size="sm"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Update'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                A confirmation email will be sent to verify the new address.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Password */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lock className="w-5 h-5 text-primary" />
+              Change Password
+            </CardTitle>
+            <CardDescription>
+              Update your password to keep your account secure
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+              />
+            </div>
+            <Button 
+              onClick={handleUpdatePassword} 
+              disabled={saving || !newPassword || !confirmPassword}
+              className="w-full"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Update Password
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Notification Preferences */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Bell className="w-5 h-5 text-primary" />
+              Notification Preferences
+            </CardTitle>
+            <CardDescription>
+              Choose how you want to be notified
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Email Notifications</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive updates about your account via email
+                </p>
+              </div>
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Career Alerts</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified about new careers matching your interests
+                </p>
+              </div>
+              <Switch
+                checked={careerAlerts}
+                onCheckedChange={setCareerAlerts}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Weekly Digest</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receive a weekly summary of career insights
+                </p>
+              </div>
+              <Switch
+                checked={weeklyDigest}
+                onCheckedChange={setWeeklyDigest}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Appearance */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Palette className="w-5 h-5 text-primary" />
+              Appearance
+            </CardTitle>
+            <CardDescription>
+              Customize how CareerPath looks for you
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Dark Mode</Label>
+                <p className="text-sm text-muted-foreground">
+                  Use dark theme for the interface
+                </p>
+              </div>
+              <Switch
+                checked={darkMode}
+                onCheckedChange={setDarkMode}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Save Preferences Button */}
+        <Button onClick={handleSavePreferences} className="w-full" size="lg">
+          <Save className="w-4 h-4 mr-2" />
+          Save All Preferences
+        </Button>
+      </main>
+    </div>
+  );
+};
+
+export default Settings;

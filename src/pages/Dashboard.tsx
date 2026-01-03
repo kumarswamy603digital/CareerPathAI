@@ -21,7 +21,8 @@ import {
   Sparkles,
   ChevronRight,
   Trash2,
-  Eye
+  Eye,
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
@@ -105,6 +106,12 @@ const Dashboard = () => {
               <Button variant="outline" size="sm" className="gap-2">
                 <GitBranch className="w-4 h-4" />
                 Explore Careers
+              </Button>
+            </Link>
+            <Link to="/settings">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
               </Button>
             </Link>
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground">
