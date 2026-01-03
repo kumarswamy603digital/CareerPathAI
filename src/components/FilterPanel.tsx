@@ -4,12 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign, GraduationCap, Wifi } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign, GraduationCap, Wifi, TrendingUp } from 'lucide-react';
 import { personalities, interests, Personality, Interest } from '@/data/careerData';
 import { cn } from '@/lib/utils';
 
 export type SalaryRange = 'all' | '0-50k' | '50k-100k' | '100k-150k' | '150k+';
 export type EducationLevel = 'all' | 'no-degree' | 'bachelors' | 'masters' | 'phd';
+export type GrowthRate = 'all' | 'declining' | 'stable' | 'growing' | 'high-demand';
 
 export const salaryRanges: { value: SalaryRange; label: string; min: number; max: number }[] = [
   { value: 'all', label: 'All Salaries', min: 0, max: Infinity },
@@ -27,16 +28,26 @@ export const educationLevels: { value: EducationLevel; label: string; keywords: 
   { value: 'phd', label: 'PhD / Doctorate', keywords: ['PhD', 'Doctorate', 'Ph.D', 'Doctor of', 'MD', 'JD'] },
 ];
 
+export const growthRates: { value: GrowthRate; label: string; jobOutlook: string }[] = [
+  { value: 'all', label: 'All Growth Rates', jobOutlook: '' },
+  { value: 'declining', label: 'Declining', jobOutlook: 'Declining' },
+  { value: 'stable', label: 'Stable', jobOutlook: 'Stable' },
+  { value: 'growing', label: 'Growing', jobOutlook: 'Growing' },
+  { value: 'high-demand', label: 'High Demand', jobOutlook: 'High Demand' },
+];
+
 interface FilterPanelProps {
   selectedPersonalities: Personality[];
   selectedInterests: Interest[];
   selectedSalaryRange: SalaryRange;
   selectedEducationLevel: EducationLevel;
+  selectedGrowthRate: GrowthRate;
   remoteOnly: boolean;
   onPersonalityChange: (personalities: Personality[]) => void;
   onInterestChange: (interests: Interest[]) => void;
   onSalaryRangeChange: (range: SalaryRange) => void;
   onEducationLevelChange: (level: EducationLevel) => void;
+  onGrowthRateChange: (rate: GrowthRate) => void;
   onRemoteOnlyChange: (remoteOnly: boolean) => void;
   recommendedCareer?: string | null;
   shortlist?: string[];
@@ -50,11 +61,13 @@ export function FilterPanel({
   selectedInterests,
   selectedSalaryRange,
   selectedEducationLevel,
+  selectedGrowthRate,
   remoteOnly,
   onPersonalityChange,
   onInterestChange,
   onSalaryRangeChange,
   onEducationLevelChange,
+  onGrowthRateChange,
   onRemoteOnlyChange,
   recommendedCareer,
   shortlist = [],
@@ -66,6 +79,7 @@ export function FilterPanel({
   const [interestOpen, setInterestOpen] = useState(true);
   const [salaryOpen, setSalaryOpen] = useState(true);
   const [educationOpen, setEducationOpen] = useState(true);
+  const [growthOpen, setGrowthOpen] = useState(true);
   const [shortlistOpen, setShortlistOpen] = useState(true);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
@@ -90,10 +104,11 @@ export function FilterPanel({
     onInterestChange([]);
     onSalaryRangeChange('all');
     onEducationLevelChange('all');
+    onGrowthRateChange('all');
     onRemoteOnlyChange(false);
   };
 
-  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly;
+  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || selectedGrowthRate !== 'all' || remoteOnly;
 
   const toggleCompareSelection = (careerName: string) => {
     setSelectedForCompare(prev => {
@@ -256,6 +271,35 @@ export function FilterPanel({
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Growth Rate Filter */}
+          <Collapsible open={growthOpen} onOpenChange={setGrowthOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-sidebar-accent rounded-lg transition-colors">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <span className="font-medium text-sidebar-foreground">Growth Rate</span>
+              </div>
+              {growthOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="flex flex-col gap-1">
+                {growthRates.map(rate => (
+                  <button
+                    key={rate.value}
+                    onClick={() => onGrowthRateChange(rate.value)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left",
+                      selectedGrowthRate === rate.value
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-sidebar-accent text-sidebar-foreground"
+                    )}
+                  >
+                    {rate.label}
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Remote-Friendly Filter */}
           <div className="p-2">
             <button
@@ -340,13 +384,15 @@ export function FilterPanel({
           <p className="text-sm text-muted-foreground">
             Showing careers matching: 
             {selectedPersonalities.length > 0 && ` ${selectedPersonalities.length} personality type(s)`}
-            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
+            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || selectedGrowthRate !== 'all' || remoteOnly) && ' &'}
             {selectedInterests.length > 0 && ` ${selectedInterests.length} interest(s)`}
-            {selectedInterests.length > 0 && (selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
+            {selectedInterests.length > 0 && (selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || selectedGrowthRate !== 'all' || remoteOnly) && ' &'}
             {selectedSalaryRange !== 'all' && ` ${salaryRanges.find(r => r.value === selectedSalaryRange)?.label}`}
-            {selectedSalaryRange !== 'all' && (selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
+            {selectedSalaryRange !== 'all' && (selectedEducationLevel !== 'all' || selectedGrowthRate !== 'all' || remoteOnly) && ' &'}
             {selectedEducationLevel !== 'all' && ` ${educationLevels.find(e => e.value === selectedEducationLevel)?.label}`}
-            {selectedEducationLevel !== 'all' && remoteOnly && ' &'}
+            {selectedEducationLevel !== 'all' && (selectedGrowthRate !== 'all' || remoteOnly) && ' &'}
+            {selectedGrowthRate !== 'all' && ` ${growthRates.find(g => g.value === selectedGrowthRate)?.label}`}
+            {selectedGrowthRate !== 'all' && remoteOnly && ' &'}
             {remoteOnly && ' Remote-Friendly'}
           </p>
         </div>
