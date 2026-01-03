@@ -13,6 +13,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { FilterPanel } from '@/components/FilterPanel';
 import { AIChatButton } from '@/components/AIChatButton';
+import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
 import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { CareerCompareModal } from '@/components/CareerCompareModal';
@@ -243,6 +244,11 @@ export default function CareerTree() {
       />
 
       <div className="flex-1 relative">
+        {/* Global Career Search */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 w-full max-w-md px-4">
+          <CareerSearch onCareerSelect={handleCareerClick} />
+        </div>
+
         <ReactFlow
           nodes={nodes}
           edges={edges}
