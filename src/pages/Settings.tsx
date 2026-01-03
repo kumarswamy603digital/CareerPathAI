@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PageLoadingSkeleton, AssessmentHistorySkeleton } from '@/components/LoadingSkeletons';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { 
@@ -173,14 +173,7 @@ const Settings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Compass className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading settings...</p>
-        </div>
-      </div>
-    );
+    return <PageLoadingSkeleton icon={Compass} message="Loading settings..." />;
   }
 
   return (
@@ -451,11 +444,7 @@ const Settings = () => {
           </CardHeader>
           <CardContent>
             {historyLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-24 w-full" />
-                ))}
-              </div>
+              <AssessmentHistorySkeleton count={2} />
             ) : assessmentHistory.length === 0 ? (
               <div className="text-center py-8">
                 <History className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
