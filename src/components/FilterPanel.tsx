@@ -4,15 +4,27 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign } from 'lucide-react';
 import { personalities, interests, Personality, Interest } from '@/data/careerData';
 import { cn } from '@/lib/utils';
+
+export type SalaryRange = 'all' | '0-50k' | '50k-100k' | '100k-150k' | '150k+';
+
+export const salaryRanges: { value: SalaryRange; label: string; min: number; max: number }[] = [
+  { value: 'all', label: 'All Salaries', min: 0, max: Infinity },
+  { value: '0-50k', label: 'Under $50k', min: 0, max: 50000 },
+  { value: '50k-100k', label: '$50k - $100k', min: 50000, max: 100000 },
+  { value: '100k-150k', label: '$100k - $150k', min: 100000, max: 150000 },
+  { value: '150k+', label: '$150k+', min: 150000, max: Infinity },
+];
 
 interface FilterPanelProps {
   selectedPersonalities: Personality[];
   selectedInterests: Interest[];
+  selectedSalaryRange: SalaryRange;
   onPersonalityChange: (personalities: Personality[]) => void;
   onInterestChange: (interests: Interest[]) => void;
+  onSalaryRangeChange: (range: SalaryRange) => void;
   recommendedCareer?: string | null;
   shortlist?: string[];
   onRemoveFromShortlist?: (careerName: string) => void;
@@ -23,8 +35,10 @@ interface FilterPanelProps {
 export function FilterPanel({
   selectedPersonalities,
   selectedInterests,
+  selectedSalaryRange,
   onPersonalityChange,
   onInterestChange,
+  onSalaryRangeChange,
   recommendedCareer,
   shortlist = [],
   onRemoveFromShortlist,
@@ -33,6 +47,7 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const [personalityOpen, setPersonalityOpen] = useState(true);
   const [interestOpen, setInterestOpen] = useState(true);
+  const [salaryOpen, setSalaryOpen] = useState(true);
   const [shortlistOpen, setShortlistOpen] = useState(true);
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
@@ -55,9 +70,10 @@ export function FilterPanel({
   const clearAll = () => {
     onPersonalityChange([]);
     onInterestChange([]);
+    onSalaryRangeChange('all');
   };
 
-  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0;
+  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all';
 
   const toggleCompareSelection = (careerName: string) => {
     setSelectedForCompare(prev => {
@@ -162,6 +178,35 @@ export function FilterPanel({
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Salary Range Filter */}
+          <Collapsible open={salaryOpen} onOpenChange={setSalaryOpen}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-sidebar-accent rounded-lg transition-colors">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-primary" />
+                <span className="font-medium text-sidebar-foreground">Salary Range</span>
+              </div>
+              {salaryOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="flex flex-col gap-1">
+                {salaryRanges.map(range => (
+                  <button
+                    key={range.value}
+                    onClick={() => onSalaryRangeChange(range.value)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left",
+                      selectedSalaryRange === range.value
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-sidebar-accent text-sidebar-foreground"
+                    )}
+                  >
+                    {range.label}
+                  </button>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
           {/* Shortlist Section */}
           {shortlist.length > 0 && (
             <Collapsible open={shortlistOpen} onOpenChange={setShortlistOpen}>
@@ -228,9 +273,12 @@ export function FilterPanel({
       {hasFilters && (
         <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/50">
           <p className="text-sm text-muted-foreground">
-            Showing careers matching: {selectedPersonalities.length > 0 && `${selectedPersonalities.length} personality type(s)`}
-            {selectedPersonalities.length > 0 && selectedInterests.length > 0 && ' & '}
-            {selectedInterests.length > 0 && `${selectedInterests.length} interest(s)`}
+            Showing careers matching: 
+            {selectedPersonalities.length > 0 && ` ${selectedPersonalities.length} personality type(s)`}
+            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all') && ' &'}
+            {selectedInterests.length > 0 && ` ${selectedInterests.length} interest(s)`}
+            {selectedInterests.length > 0 && selectedSalaryRange !== 'all' && ' &'}
+            {selectedSalaryRange !== 'all' && ` ${salaryRanges.find(r => r.value === selectedSalaryRange)?.label}`}
           </p>
         </div>
       )}

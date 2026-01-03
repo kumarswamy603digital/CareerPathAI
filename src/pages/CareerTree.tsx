@@ -11,14 +11,14 @@ import {
   Edge,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { FilterPanel } from '@/components/FilterPanel';
+import { FilterPanel, SalaryRange, salaryRanges } from '@/components/FilterPanel';
 import { AIChatButton } from '@/components/AIChatButton';
 import { CareerSearch } from '@/components/CareerSearch';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
 import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { CareerCompareModal } from '@/components/CareerCompareModal';
 import { careerTree } from '@/data/careerTreeData';
-import { getCareerDetails, CareerDetails } from '@/data/careerDetails';
+import { getCareerDetails, CareerDetails, careerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
 import { useCareerShortlist } from '@/hooks/useCareerShortlist';
 const nodeTypes = {
@@ -143,6 +143,7 @@ export default function CareerTree() {
 
   const [selectedPersonalities, setSelectedPersonalities] = useState<Personality[]>(initialPersonalities);
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>(initialInterests);
+  const [selectedSalaryRange, setSelectedSalaryRange] = useState<SalaryRange>('all');
   const [selectedCareer] = useState<string | null>(initialCareer);
   
   // Detail panel state
@@ -182,7 +183,12 @@ export default function CareerTree() {
   const filteredOutCareers = useMemo(() => {
     const filtered = new Set<string>();
 
-    if (selectedPersonalities.length === 0 && selectedInterests.length === 0) {
+    // Get salary filter bounds
+    const salaryFilter = salaryRanges.find(r => r.value === selectedSalaryRange);
+    const salaryMin = salaryFilter?.min ?? 0;
+    const salaryMax = salaryFilter?.max ?? Infinity;
+
+    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all') {
       return filtered;
     }
 
@@ -191,6 +197,7 @@ export default function CareerTree() {
         subcategory.careers.forEach(career => {
           let matchesPersonality = selectedPersonalities.length === 0;
           let matchesInterest = selectedInterests.length === 0;
+          let matchesSalary = selectedSalaryRange === 'all';
 
           if (selectedPersonalities.length > 0) {
             matchesPersonality = selectedPersonalities.some(p => 
@@ -204,7 +211,19 @@ export default function CareerTree() {
             );
           }
 
-          if (!matchesPersonality || !matchesInterest) {
+          // Check salary range if filter is active
+          if (selectedSalaryRange !== 'all') {
+            const details = careerDetails[career.name];
+            if (details) {
+              // Career matches if its salary range overlaps with the filter range
+              matchesSalary = details.salaryRange.max >= salaryMin && details.salaryRange.min <= salaryMax;
+            } else {
+              // If no salary data, don't filter out
+              matchesSalary = true;
+            }
+          }
+
+          if (!matchesPersonality || !matchesInterest || !matchesSalary) {
             filtered.add(career.name);
           }
         });
@@ -212,7 +231,7 @@ export default function CareerTree() {
     });
 
     return filtered;
-  }, [selectedPersonalities, selectedInterests]);
+  }, [selectedPersonalities, selectedInterests, selectedSalaryRange]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
@@ -234,8 +253,10 @@ export default function CareerTree() {
       <FilterPanel
         selectedPersonalities={selectedPersonalities}
         selectedInterests={selectedInterests}
+        selectedSalaryRange={selectedSalaryRange}
         onPersonalityChange={setSelectedPersonalities}
         onInterestChange={setSelectedInterests}
+        onSalaryRangeChange={setSelectedSalaryRange}
         recommendedCareer={selectedCareer}
         shortlist={shortlist}
         onRemoveFromShortlist={removeFromShortlist}
