@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, X, Filter, Sparkles } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2 } from 'lucide-react';
 import { personalities, interests, Personality, Interest } from '@/data/careerData';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +14,10 @@ interface FilterPanelProps {
   onPersonalityChange: (personalities: Personality[]) => void;
   onInterestChange: (interests: Interest[]) => void;
   recommendedCareer?: string | null;
+  shortlist?: string[];
+  onRemoveFromShortlist?: (careerName: string) => void;
+  onCompare?: (careers: string[]) => void;
+  onCareerClick?: (careerName: string) => void;
 }
 
 export function FilterPanel({
@@ -21,9 +26,15 @@ export function FilterPanel({
   onPersonalityChange,
   onInterestChange,
   recommendedCareer,
+  shortlist = [],
+  onRemoveFromShortlist,
+  onCompare,
+  onCareerClick,
 }: FilterPanelProps) {
   const [personalityOpen, setPersonalityOpen] = useState(true);
   const [interestOpen, setInterestOpen] = useState(true);
+  const [shortlistOpen, setShortlistOpen] = useState(true);
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([]);
 
   const togglePersonality = (p: Personality) => {
     if (selectedPersonalities.includes(p)) {
@@ -47,6 +58,24 @@ export function FilterPanel({
   };
 
   const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0;
+
+  const toggleCompareSelection = (careerName: string) => {
+    setSelectedForCompare(prev => {
+      if (prev.includes(careerName)) {
+        return prev.filter(c => c !== careerName);
+      }
+      if (prev.length >= 3) {
+        return prev; // Max 3 careers
+      }
+      return [...prev, careerName];
+    });
+  };
+
+  const handleCompare = () => {
+    if (selectedForCompare.length >= 2 && onCompare) {
+      onCompare(selectedForCompare);
+    }
+  };
 
   return (
     <div className="w-80 bg-sidebar border-r border-sidebar-border h-full flex flex-col">
@@ -132,6 +161,67 @@ export function FilterPanel({
               </div>
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Shortlist Section */}
+          {shortlist.length > 0 && (
+            <Collapsible open={shortlistOpen} onOpenChange={setShortlistOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-2 hover:bg-sidebar-accent rounded-lg transition-colors">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-red-500 fill-red-500" />
+                  <span className="font-medium text-sidebar-foreground">
+                    My Shortlist ({shortlist.length})
+                  </span>
+                </div>
+                {shortlistOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2 space-y-2">
+                {shortlist.map(careerName => (
+                  <div 
+                    key={careerName}
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-sidebar-accent group"
+                  >
+                    <Checkbox
+                      checked={selectedForCompare.includes(careerName)}
+                      onCheckedChange={() => toggleCompareSelection(careerName)}
+                      disabled={!selectedForCompare.includes(careerName) && selectedForCompare.length >= 3}
+                      className="border-border"
+                    />
+                    <span 
+                      className="flex-1 text-sm text-sidebar-foreground cursor-pointer hover:text-primary truncate"
+                      onClick={() => onCareerClick?.(careerName)}
+                    >
+                      {careerName}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                      onClick={() => onRemoveFromShortlist?.(careerName)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                
+                {selectedForCompare.length >= 2 && (
+                  <Button 
+                    onClick={handleCompare}
+                    className="w-full mt-3 bg-primary text-primary-foreground hover:bg-primary/90"
+                    size="sm"
+                  >
+                    <Scale className="w-4 h-4 mr-2" />
+                    Compare ({selectedForCompare.length})
+                  </Button>
+                )}
+                
+                {shortlist.length >= 2 && selectedForCompare.length < 2 && (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Select 2-3 careers to compare
+                  </p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
       </ScrollArea>
 

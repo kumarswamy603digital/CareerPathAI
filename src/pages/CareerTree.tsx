@@ -14,6 +14,7 @@ import '@xyflow/react/dist/style.css';
 import { FilterPanel } from '@/components/FilterPanel';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
 import { CareerDetailPanel } from '@/components/CareerDetailPanel';
+import { CareerCompareModal } from '@/components/CareerCompareModal';
 import { careerTree } from '@/data/careerTreeData';
 import { getCareerDetails, CareerDetails } from '@/data/careerDetails';
 import { Personality, Interest } from '@/data/careerData';
@@ -147,7 +148,11 @@ export default function CareerTree() {
   const [selectedCareerDetails, setSelectedCareerDetails] = useState<CareerDetails | null>(null);
 
   // Shortlist hook
-  const { isInShortlist, toggleShortlist } = useCareerShortlist();
+  const { shortlist, isInShortlist, toggleShortlist, removeFromShortlist } = useCareerShortlist();
+
+  // Compare modal state
+  const [compareModalOpen, setCompareModalOpen] = useState(false);
+  const [careersToCompare, setCareersToCompare] = useState<string[]>([]);
 
   const handleCareerClick = useCallback((careerName: string) => {
     const details = getCareerDetails(careerName);
@@ -155,6 +160,21 @@ export default function CareerTree() {
       setSelectedCareerDetails(details);
       setDetailPanelOpen(true);
     }
+  }, []);
+
+  const handleCompare = useCallback((careers: string[]) => {
+    setCareersToCompare(careers);
+    setCompareModalOpen(true);
+  }, []);
+
+  const handleRemoveFromCompare = useCallback((careerName: string) => {
+    setCareersToCompare(prev => {
+      const updated = prev.filter(c => c !== careerName);
+      if (updated.length < 2) {
+        setCompareModalOpen(false);
+      }
+      return updated;
+    });
   }, []);
 
   const filteredOutCareers = useMemo(() => {
@@ -215,6 +235,10 @@ export default function CareerTree() {
         onPersonalityChange={setSelectedPersonalities}
         onInterestChange={setSelectedInterests}
         recommendedCareer={selectedCareer}
+        shortlist={shortlist}
+        onRemoveFromShortlist={removeFromShortlist}
+        onCompare={handleCompare}
+        onCareerClick={handleCareerClick}
       />
 
       <div className="flex-1 relative">
@@ -251,6 +275,13 @@ export default function CareerTree() {
         onOpenChange={setDetailPanelOpen}
         isInShortlist={selectedCareerDetails ? isInShortlist(selectedCareerDetails.name) : false}
         onToggleShortlist={toggleShortlist}
+      />
+
+      <CareerCompareModal
+        careers={careersToCompare}
+        open={compareModalOpen}
+        onOpenChange={setCompareModalOpen}
+        onRemoveCareer={handleRemoveFromCompare}
       />
     </div>
   );
