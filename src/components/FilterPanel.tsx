@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign, GraduationCap } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Filter, Sparkles, Heart, Scale, Trash2, DollarSign, GraduationCap, Wifi } from 'lucide-react';
 import { personalities, interests, Personality, Interest } from '@/data/careerData';
 import { cn } from '@/lib/utils';
 
@@ -32,10 +32,12 @@ interface FilterPanelProps {
   selectedInterests: Interest[];
   selectedSalaryRange: SalaryRange;
   selectedEducationLevel: EducationLevel;
+  remoteOnly: boolean;
   onPersonalityChange: (personalities: Personality[]) => void;
   onInterestChange: (interests: Interest[]) => void;
   onSalaryRangeChange: (range: SalaryRange) => void;
   onEducationLevelChange: (level: EducationLevel) => void;
+  onRemoteOnlyChange: (remoteOnly: boolean) => void;
   recommendedCareer?: string | null;
   shortlist?: string[];
   onRemoveFromShortlist?: (careerName: string) => void;
@@ -48,10 +50,12 @@ export function FilterPanel({
   selectedInterests,
   selectedSalaryRange,
   selectedEducationLevel,
+  remoteOnly,
   onPersonalityChange,
   onInterestChange,
   onSalaryRangeChange,
   onEducationLevelChange,
+  onRemoteOnlyChange,
   recommendedCareer,
   shortlist = [],
   onRemoveFromShortlist,
@@ -86,9 +90,10 @@ export function FilterPanel({
     onInterestChange([]);
     onSalaryRangeChange('all');
     onEducationLevelChange('all');
+    onRemoteOnlyChange(false);
   };
 
-  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all';
+  const hasFilters = selectedPersonalities.length > 0 || selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly;
 
   const toggleCompareSelection = (careerName: string) => {
     setSelectedForCompare(prev => {
@@ -251,6 +256,22 @@ export function FilterPanel({
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Remote-Friendly Filter */}
+          <div className="p-2">
+            <button
+              onClick={() => onRemoteOnlyChange(!remoteOnly)}
+              className={cn(
+                "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors text-left",
+                remoteOnly
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-sidebar-accent text-sidebar-foreground"
+              )}
+            >
+              <Wifi className="w-4 h-4" />
+              Remote-Friendly Only
+            </button>
+          </div>
+
           {/* Shortlist Section */}
           {shortlist.length > 0 && (
             <Collapsible open={shortlistOpen} onOpenChange={setShortlistOpen}>
@@ -319,12 +340,14 @@ export function FilterPanel({
           <p className="text-sm text-muted-foreground">
             Showing careers matching: 
             {selectedPersonalities.length > 0 && ` ${selectedPersonalities.length} personality type(s)`}
-            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all') && ' &'}
+            {selectedPersonalities.length > 0 && (selectedInterests.length > 0 || selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
             {selectedInterests.length > 0 && ` ${selectedInterests.length} interest(s)`}
-            {selectedInterests.length > 0 && (selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all') && ' &'}
+            {selectedInterests.length > 0 && (selectedSalaryRange !== 'all' || selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
             {selectedSalaryRange !== 'all' && ` ${salaryRanges.find(r => r.value === selectedSalaryRange)?.label}`}
-            {selectedSalaryRange !== 'all' && selectedEducationLevel !== 'all' && ' &'}
+            {selectedSalaryRange !== 'all' && (selectedEducationLevel !== 'all' || remoteOnly) && ' &'}
             {selectedEducationLevel !== 'all' && ` ${educationLevels.find(e => e.value === selectedEducationLevel)?.label}`}
+            {selectedEducationLevel !== 'all' && remoteOnly && ' &'}
+            {remoteOnly && ' Remote-Friendly'}
           </p>
         </div>
       )}

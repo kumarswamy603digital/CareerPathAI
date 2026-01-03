@@ -19,6 +19,7 @@ export interface CareerDetails {
   education: string[];
   jobOutlook: 'Declining' | 'Stable' | 'Growing' | 'High Demand';
   jobOutlookDescription: string;
+  remoteCompatible?: boolean;
   trajectory?: CareerTrajectoryLevel[];
 }
 
@@ -70,6 +71,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Computer Science", 'Coding Bootcamp', 'Self-taught with portfolio'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Expected 25% growth over the next decade. Strong demand across all industries.',
+    remoteCompatible: true,
   },
   'Game Developer': {
     id: 'game-developer',
@@ -80,6 +82,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Game Development", "Bachelor's in Computer Science", 'Game Development Bootcamp'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Gaming industry continues to expand with mobile and VR growth.',
+    remoteCompatible: true,
   },
   'VR Engineer': {
     id: 'vr-engineer',
@@ -90,6 +93,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Computer Science", "Master's in XR Development", 'Specialized VR Certifications'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Emerging field with increasing enterprise adoption and consumer growth.',
+    remoteCompatible: true,
   },
 
   // Technology - Data & AI
@@ -102,6 +106,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Master's in Data Science", "Bachelor's in Statistics/Math", 'Data Science Bootcamp'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'One of the fastest-growing careers with 35% projected growth.',
+    remoteCompatible: true,
   },
   'Machine Learning Engineer': {
     id: 'machine-learning-engineer',
@@ -112,6 +117,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Master's in Machine Learning", "Bachelor's in Computer Science", 'PhD in AI/ML'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'AI boom driving unprecedented demand for ML engineers.',
+    remoteCompatible: true,
   },
   'Quant Analyst': {
     id: 'quant-analyst',
@@ -122,6 +128,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Master's/PhD in Mathematics", "Master's in Financial Engineering", "Bachelor's in Physics/Math"],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Competitive field with steady demand at top financial firms.',
+    remoteCompatible: true,
   },
   'Crypto Researcher': {
     id: 'crypto-researcher',
@@ -132,6 +139,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Computer Science", "Master's in Economics", 'Self-taught with publications'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Volatile but growing field tied to crypto market expansion.',
+    remoteCompatible: true,
   },
 
   // Technology - Robotics & Hardware
@@ -144,6 +152,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Robotics Engineering", "Master's in Mechatronics", "Bachelor's in Electrical Engineering"],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Automation and AI driving strong growth in robotics.',
+    remoteCompatible: false,
   },
   'Hardware Engineer': {
     id: 'hardware-engineer',
@@ -154,6 +163,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Electrical Engineering", "Master's in Computer Engineering", 'Hardware Certifications'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Steady demand with growth in IoT and semiconductor industries.',
+    remoteCompatible: false,
   },
   'Drone Technician': {
     id: 'drone-technician',
@@ -164,6 +174,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['FAA Part 107 Certification', 'Aviation Technology Degree', 'Technical Training Programs'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Rapid growth as drones expand into delivery, agriculture, and inspection.',
+    remoteCompatible: false,
   },
   'Electrician': {
     id: 'electrician',
@@ -174,6 +185,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['Apprenticeship Program', 'Trade School Diploma', 'Journeyman/Master License'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Strong demand driven by construction and renewable energy.',
+    remoteCompatible: false,
   },
   'Mechanic': {
     id: 'mechanic',
@@ -184,6 +196,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['Vocational Training', 'ASE Certifications', 'Manufacturer Training'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Consistent demand with shift toward electric vehicle expertise.',
+    remoteCompatible: false,
   },
   'CNC Machinist': {
     id: 'cnc-machinist',
@@ -194,6 +207,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['Trade School Certificate', 'Apprenticeship', 'CNC Certifications'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Steady demand in manufacturing with increasing automation.',
+    remoteCompatible: false,
   },
 
   // Technology - IT & Infrastructure
@@ -206,6 +220,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['Cloud Certifications (AWS SA, Azure Architect)', "Bachelor's in IT", 'Years of Cloud Experience'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Cloud adoption driving exceptional demand for architects.',
+    remoteCompatible: true,
   },
   'Systems Administrator': {
     id: 'systems-administrator',
@@ -216,6 +231,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in IT", 'CompTIA/Microsoft Certifications', 'On-the-job Training'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Evolving toward DevOps and cloud-focused roles.',
+    remoteCompatible: true,
   },
 
   // Technology - Technical Product Roles
@@ -228,6 +244,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Business/Tech", 'MBA', 'Product Management Bootcamp'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Tech companies highly value strong product managers.',
+    remoteCompatible: true,
   },
   'Project Manager': {
     id: 'project-manager',
@@ -238,6 +255,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's Degree", 'PMP Certification', 'Agile Certifications'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Consistent demand across all industries.',
+    remoteCompatible: true,
   },
   'Operations Manager': {
     id: 'operations-manager',
@@ -248,6 +266,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Business", 'MBA', 'Operations Management Certifications'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Essential role with steady demand in all sectors.',
+    remoteCompatible: true,
   },
   'Supply Chain Analyst': {
     id: 'supply-chain-analyst',
@@ -258,6 +277,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Supply Chain", "Bachelor's in Business Analytics", 'APICS Certifications'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Supply chain disruptions increased focus on this role.',
+    remoteCompatible: true,
   },
 
   // Science & Academia - Natural Sciences
@@ -270,6 +290,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['PhD in Physics', "Master's in Physics", 'Postdoctoral Research'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Academic positions competitive; industry roles growing.',
+    remoteCompatible: false,
   },
   'Astrophysicist': {
     id: 'astrophysicist',
@@ -280,6 +301,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['PhD in Astrophysics', "Master's in Astronomy", 'Postdoctoral Fellowships'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Limited positions but steady funding for space research.',
+    remoteCompatible: false,
   },
   'Chemist': {
     id: 'chemist',
@@ -290,6 +312,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Chemistry", "Master's/PhD for Research", 'Industry Certifications'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Steady demand in pharmaceuticals and materials science.',
+    remoteCompatible: false,
   },
   'Environmental Scientist': {
     id: 'environmental-scientist',
@@ -300,6 +323,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Environmental Science", "Master's for Advanced Roles", 'Specialized Certifications'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Climate change driving increased demand for expertise.',
+    remoteCompatible: false,
   },
   'Biomedical Researcher': {
     id: 'biomedical-researcher',
@@ -310,6 +334,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['PhD in Biomedical Sciences', 'MD-PhD Programs', 'Postdoctoral Training'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Aging population and new diseases driving research funding.',
+    remoteCompatible: false,
   },
 
   // Science & Academia - Life Sciences
@@ -384,6 +409,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Master's in Instructional Design", "Bachelor's in Education", 'ID Certifications'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Online learning expansion driving demand.',
+    remoteCompatible: true,
   },
   'Learning Consultant': {
     id: 'learning-consultant',
@@ -394,6 +420,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Master's in OD/HR", 'Training Certifications', 'Business Experience'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Corporate training budgets increasing.',
+    remoteCompatible: true,
   },
   'Educational YouTuber': {
     id: 'educational-youtuber',
@@ -404,6 +431,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ['No Formal Requirements', 'Subject Matter Expertise', 'Video Production Skills'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Creator economy expanding; income highly variable.',
+    remoteCompatible: true,
   },
 
   // Design & Creativity - Visual Design
@@ -416,6 +444,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Design", 'UX Bootcamp', 'Self-taught with Portfolio'],
     jobOutlook: 'High Demand',
     jobOutlookDescription: 'Digital product growth driving strong UX demand.',
+    remoteCompatible: true,
   },
   'Illustrator': {
     id: 'illustrator',
@@ -426,6 +455,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Illustration", 'Art School', 'Self-taught with Portfolio'],
     jobOutlook: 'Stable',
     jobOutlookDescription: 'Freelance opportunities growing; competition from AI tools.',
+    remoteCompatible: true,
   },
   'Animator': {
     id: 'animator',
@@ -436,6 +466,7 @@ export const careerDetails: Record<string, CareerDetails> = {
     education: ["Bachelor's in Animation", 'Animation Bootcamp', 'Strong Demo Reel'],
     jobOutlook: 'Growing',
     jobOutlookDescription: 'Streaming content and gaming driving animation demand.',
+    remoteCompatible: true,
   },
   'Art Director': {
     id: 'art-director',

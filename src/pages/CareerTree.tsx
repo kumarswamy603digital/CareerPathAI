@@ -145,6 +145,7 @@ export default function CareerTree() {
   const [selectedInterests, setSelectedInterests] = useState<Interest[]>(initialInterests);
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<SalaryRange>('all');
   const [selectedEducationLevel, setSelectedEducationLevel] = useState<EducationLevel>('all');
+  const [remoteOnly, setRemoteOnly] = useState(false);
   const [selectedCareer] = useState<string | null>(initialCareer);
   
   // Detail panel state
@@ -193,7 +194,7 @@ export default function CareerTree() {
     const educationFilter = educationLevels.find(e => e.value === selectedEducationLevel);
     const educationKeywords = educationFilter?.keywords ?? [];
 
-    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all' && selectedEducationLevel === 'all') {
+    if (selectedPersonalities.length === 0 && selectedInterests.length === 0 && selectedSalaryRange === 'all' && selectedEducationLevel === 'all' && !remoteOnly) {
       return filtered;
     }
 
@@ -204,6 +205,7 @@ export default function CareerTree() {
           let matchesInterest = selectedInterests.length === 0;
           let matchesSalary = selectedSalaryRange === 'all';
           let matchesEducation = selectedEducationLevel === 'all';
+          let matchesRemote = !remoteOnly;
 
           if (selectedPersonalities.length > 0) {
             matchesPersonality = selectedPersonalities.some(p => 
@@ -243,7 +245,18 @@ export default function CareerTree() {
             }
           }
 
-          if (!matchesPersonality || !matchesInterest || !matchesSalary || !matchesEducation) {
+          // Check remote compatibility if filter is active
+          if (remoteOnly) {
+            const details = careerDetails[career.name];
+            if (details) {
+              matchesRemote = details.remoteCompatible === true;
+            } else {
+              // If no remote data, don't filter out
+              matchesRemote = true;
+            }
+          }
+
+          if (!matchesPersonality || !matchesInterest || !matchesSalary || !matchesEducation || !matchesRemote) {
             filtered.add(career.name);
           }
         });
@@ -251,7 +264,7 @@ export default function CareerTree() {
     });
 
     return filtered;
-  }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel]);
+  }, [selectedPersonalities, selectedInterests, selectedSalaryRange, selectedEducationLevel, remoteOnly]);
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => generateNodesAndEdges(filteredOutCareers, selectedCareer, handleCareerClick),
@@ -275,10 +288,12 @@ export default function CareerTree() {
         selectedInterests={selectedInterests}
         selectedSalaryRange={selectedSalaryRange}
         selectedEducationLevel={selectedEducationLevel}
+        remoteOnly={remoteOnly}
         onPersonalityChange={setSelectedPersonalities}
         onInterestChange={setSelectedInterests}
         onSalaryRangeChange={setSelectedSalaryRange}
         onEducationLevelChange={setSelectedEducationLevel}
+        onRemoteOnlyChange={setRemoteOnly}
         recommendedCareer={selectedCareer}
         shortlist={shortlist}
         onRemoveFromShortlist={removeFromShortlist}
