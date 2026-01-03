@@ -275,6 +275,7 @@ export default function CareerTree() {
         onOpenChange={setDetailPanelOpen}
         isInShortlist={selectedCareerDetails ? isInShortlist(selectedCareerDetails.name) : false}
         onToggleShortlist={toggleShortlist}
+        onViewCareer={handleCareerClick}
       />
 
       <CareerCompareModal
