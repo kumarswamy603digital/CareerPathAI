@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, Users } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, Users, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { InviteFriends } from '@/components/InviteFriends';
@@ -78,6 +78,12 @@ const Index = () => {
                   <GitBranch className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
+              <Link to="/forum">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
+                  Community
+                  <MessageSquare className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
               <InviteFriends />
             </>
           ) : (
@@ -92,6 +98,12 @@ const Index = () => {
                 <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
                   Explore Careers
                   <GitBranch className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/forum">
+                <Button size="lg" variant="outline" className="text-lg px-8 py-6 border-primary text-primary hover:bg-accent font-semibold">
+                  Community
+                  <MessageSquare className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
             </>

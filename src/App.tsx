@@ -11,6 +11,8 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import PublicProfile from "./pages/PublicProfile";
+import Forum from "./pages/Forum";
+import ForumPost from "./pages/ForumPost";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/tree" element={<CareerTree />} />
           <Route path="/u/:slug" element={<PublicProfile />} />
+          <Route path="/forum" element={<Forum />} />
+          <Route path="/forum/post/:postId" element={<ForumPost />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
