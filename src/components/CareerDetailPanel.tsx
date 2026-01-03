@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { CareerDetails, formatSalaryRange } from '@/data/careerDetails';
+import { CareerDetails, formatSalaryRange, getCareerTrajectory, CareerTrajectoryLevel } from '@/data/careerDetails';
 import { 
   DollarSign, 
   GraduationCap, 
@@ -12,7 +12,9 @@ import {
   Minus,
   Zap,
   BookOpen,
-  Heart
+  Heart,
+  ArrowRight,
+  Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -161,6 +163,58 @@ export function CareerDetailPanel({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <Separator className="bg-border" />
+
+          {/* Career Trajectory */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <Target className="w-5 h-5 text-primary" />
+              <span>Career Trajectory</span>
+            </div>
+            <div className="relative">
+              {getCareerTrajectory(career).map((level, index, arr) => (
+                <div key={index} className="relative flex items-start gap-3 pb-4">
+                  {/* Vertical line connector */}
+                  {index < arr.length - 1 && (
+                    <div className="absolute left-[15px] top-8 w-0.5 h-full bg-gradient-to-b from-primary/60 to-primary/20" />
+                  )}
+                  
+                  {/* Level indicator */}
+                  <div className={cn(
+                    "shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10",
+                    index === 0 && "bg-muted text-muted-foreground",
+                    index === 1 && "bg-secondary text-secondary-foreground",
+                    index === 2 && "bg-primary/70 text-primary-foreground",
+                    index === 3 && "bg-primary text-primary-foreground"
+                  )}>
+                    {index + 1}
+                  </div>
+                  
+                  {/* Level details */}
+                  <div className="flex-1 bg-accent/30 rounded-lg p-3 border border-border/50">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h4 className="font-semibold text-sm text-foreground">{level.title}</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {level.yearsExperience}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-primary font-medium mb-2">
+                      ${level.salaryRange.min.toLocaleString()} - ${level.salaryRange.max.toLocaleString()}
+                    </p>
+                    <ul className="space-y-0.5">
+                      {level.responsibilities.slice(0, 2).map((resp, i) => (
+                        <li key={i} className="text-xs text-muted-foreground flex items-center gap-1">
+                          <ArrowRight className="w-3 h-3 shrink-0" />
+                          {resp}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </SheetContent>
