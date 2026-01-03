@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        serif: ['Literata', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -34,6 +38,7 @@ export default {
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
+          node: "hsl(var(--muted-node))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -46,6 +51,11 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        link: "hsl(var(--link))",
+        accept: {
+          DEFAULT: "hsl(var(--accept))",
+          foreground: "hsl(var(--accept-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -80,10 +90,19 @@ export default {
             height: "0",
           },
         },
+        "pulse-ring": {
+          "0%, 100%": {
+            boxShadow: "0 0 0 0 hsl(42 100% 50% / 0.4)",
+          },
+          "50%": {
+            boxShadow: "0 0 0 8px hsl(42 100% 50% / 0)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pulse-ring": "pulse-ring 2s ease-in-out infinite",
       },
     },
   },

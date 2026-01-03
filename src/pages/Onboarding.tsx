@@ -4,15 +4,24 @@ import { useConversation } from '@elevenlabs/react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CareerResultModal } from '@/components/CareerResultModal';
 import { toast } from 'sonner';
 import { Mic, MicOff, Compass, Volume2, Loader2 } from 'lucide-react';
 
 const ELEVENLABS_AGENT_ID = 'agent_8501k18x4qeee61vtwnh9g56b0em';
 
+interface CareerResult {
+  interests: string[];
+  personality: string[];
+  career: string;
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const [isConnecting, setIsConnecting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [careerResult, setCareerResult] = useState<CareerResult | null>(null);
+  const [showResult, setShowResult] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -34,24 +43,30 @@ export default function Onboarding() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const saveCareerResults = async (params: { 
-    interests: string[]; 
-    personality: string[];  // Array as per ElevenLabs tool schema
-    career: string;
-  }) => {
+  const saveCareerResults = async (params: CareerResult) => {
     if (!userId) {
       toast.error('User not found');
       return 'Error: User not found';
     }
 
-    console.log('Saving career results:', params);
+    console.log('Career tool called with:', params);
+    
+    // Store the result and show modal instead of saving immediately
+    setCareerResult(params);
+    setShowResult(true);
+
+    return `Career recommendation received: ${params.career}. Showing to user for confirmation.`;
+  };
+
+  const handleAcceptCareer = async () => {
+    if (!userId || !careerResult) return;
 
     const { error } = await supabase
       .from('profiles')
       .update({
-        interests: params.interests,
-        personality: params.personality,
-        recommended_career: params.career,
+        interests: careerResult.interests,
+        personality: careerResult.personality,
+        recommended_career: careerResult.career,
         onboarding_completed: true,
       })
       .eq('user_id', userId);
@@ -59,17 +74,32 @@ export default function Onboarding() {
     if (error) {
       console.error('Error saving profile:', error);
       toast.error('Failed to save your results');
-      return 'Error saving results';
+      return;
     }
 
-    toast.success(`Great! Your recommended career is: ${params.career}`);
+    toast.success(`Great choice! Exploring ${careerResult.career}`);
     
-    // Navigate after a short delay to let the user hear the final message
-    setTimeout(() => {
-      navigate('/tree');
-    }, 3000);
+    // Navigate to tree with filters applied via URL params
+    const params = new URLSearchParams();
+    params.set('career', careerResult.career);
+    params.set('interests', careerResult.interests.join(','));
+    params.set('personality', careerResult.personality.join(','));
+    
+    navigate(`/tree?${params.toString()}`);
+  };
 
-    return `Successfully saved career recommendation: ${params.career}`;
+  const handleRedoConversation = () => {
+    setShowResult(false);
+    setCareerResult(null);
+    // End current session if connected
+    if (conversation.status === 'connected') {
+      conversation.endSession();
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowResult(false);
+    setCareerResult(null);
   };
 
   const conversation = useConversation({
@@ -100,7 +130,7 @@ export default function Onboarding() {
       
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
-      } as any); // Public agent doesn't require token
+      } as any);
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to start conversation. Please allow microphone access.');
@@ -117,17 +147,17 @@ export default function Onboarding() {
   const isSpeaking = conversation.isSpeaking;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-lg bg-card border-border shadow-xl">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mx-auto mb-4 relative">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent mx-auto mb-4 relative">
             <Compass className="w-10 h-10 text-primary" />
             {isConnected && isSpeaking && (
               <div className="absolute inset-0 rounded-full border-4 border-primary animate-pulse" />
             )}
           </div>
-          <CardTitle className="text-2xl">Career Discovery</CardTitle>
-          <CardDescription className="text-base">
+          <CardTitle className="text-2xl font-serif">Career Discovery</CardTitle>
+          <CardDescription className="text-base text-muted-foreground">
             Have a conversation with our AI advisor to discover your ideal career path based on your interests and personality.
           </CardDescription>
         </CardHeader>
@@ -136,7 +166,7 @@ export default function Onboarding() {
           <div className="flex items-center justify-center gap-2 text-sm">
             {isConnected ? (
               <>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span className="text-muted-foreground">
                   {isSpeaking ? 'AI is speaking...' : 'Listening...'}
                 </span>
@@ -157,7 +187,7 @@ export default function Onboarding() {
                 size="lg"
                 onClick={startConversation}
                 disabled={isConnecting}
-                className="gap-2 text-lg px-8 py-6"
+                className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
               >
                 {isConnecting ? (
                   <>
@@ -186,7 +216,7 @@ export default function Onboarding() {
 
           {/* Instructions */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-            <h4 className="font-medium text-sm">How it works:</h4>
+            <h4 className="font-medium text-sm font-serif">How it works:</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Click "Start Conversation" and allow microphone access</li>
               <li>• Talk naturally about your interests, hobbies, and strengths</li>
@@ -201,13 +231,25 @@ export default function Onboarding() {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/tree')}
-              className="text-muted-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               Skip for now
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Career Result Modal */}
+      {showResult && careerResult && (
+        <CareerResultModal
+          career={careerResult.career}
+          interests={careerResult.interests}
+          personality={careerResult.personality}
+          onAccept={handleAcceptCareer}
+          onRedo={handleRedoConversation}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

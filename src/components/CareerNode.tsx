@@ -4,64 +4,61 @@ import { cn } from '@/lib/utils';
 interface CareerNodeProps {
   data: {
     label: string;
-    category: string;
     isFiltered: boolean;
+    isSelected?: boolean;
   };
 }
 
-const categoryColors: Record<string, string> = {
-  Tech: 'bg-blue-500/20 border-blue-500',
-  Science: 'bg-purple-500/20 border-purple-500',
-  Creative: 'bg-pink-500/20 border-pink-500',
-  Media: 'bg-orange-500/20 border-orange-500',
-  Business: 'bg-green-500/20 border-green-500',
-  Health: 'bg-teal-500/20 border-teal-500',
-  Education: 'bg-yellow-500/20 border-yellow-500',
-  Law: 'bg-red-500/20 border-red-500',
-  Trades: 'bg-amber-500/20 border-amber-500',
-  Operations: 'bg-indigo-500/20 border-indigo-500',
-  Gaming: 'bg-violet-500/20 border-violet-500',
-  Social: 'bg-rose-500/20 border-rose-500',
-};
-
 export function CareerNode({ data }: CareerNodeProps) {
-  const colorClass = categoryColors[data.category] || 'bg-muted border-muted-foreground';
-  
   return (
     <div
       className={cn(
-        'px-4 py-2 rounded-lg border-2 transition-all duration-300 min-w-[140px] text-center',
-        colorClass,
-        data.isFiltered && 'opacity-20 grayscale'
+        'px-4 py-2 rounded-lg border-2 transition-all duration-300 min-w-[130px] text-center cursor-pointer',
+        'bg-card border-border hover:glow-amber',
+        data.isSelected && 'border-primary bg-accent ring-2 ring-primary/30 glow-amber',
+        data.isFiltered && !data.isSelected && 'opacity-40 grayscale bg-muted-node border-muted-node'
       )}
     >
-      <Handle type="target" position={Position.Top} className="!bg-muted-foreground" />
-      <span className={cn(
-        'text-sm font-medium',
-        data.isFiltered ? 'text-muted-foreground' : 'text-foreground'
-      )}>
+      <Handle type="target" position={Position.Top} className="!bg-border !w-2 !h-2" />
+      <span
+        className={cn(
+          'text-sm font-medium',
+          data.isSelected ? 'text-primary font-semibold' : 'text-foreground',
+          data.isFiltered && !data.isSelected && 'text-muted-foreground'
+        )}
+      >
         {data.label}
       </span>
-      <Handle type="source" position={Position.Bottom} className="!bg-muted-foreground" />
+      <Handle type="source" position={Position.Bottom} className="!bg-border !w-2 !h-2" />
+    </div>
+  );
+}
+
+export function SubCategoryNode({ data }: { data: { label: string } }) {
+  return (
+    <div className="px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground font-medium text-sm shadow-md border border-border">
+      <Handle type="target" position={Position.Top} className="!bg-secondary-foreground !w-2 !h-2" />
+      {data.label}
+      <Handle type="source" position={Position.Bottom} className="!bg-secondary-foreground !w-2 !h-2" />
     </div>
   );
 }
 
 export function CategoryNode({ data }: { data: { label: string } }) {
   return (
-    <div className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-lg shadow-lg">
-      <Handle type="target" position={Position.Top} className="!bg-primary-foreground" />
+    <div className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-serif font-bold text-lg shadow-lg">
+      <Handle type="target" position={Position.Top} className="!bg-primary-foreground !w-2 !h-2" />
       {data.label}
-      <Handle type="source" position={Position.Bottom} className="!bg-primary-foreground" />
+      <Handle type="source" position={Position.Bottom} className="!bg-primary-foreground !w-2 !h-2" />
     </div>
   );
 }
 
 export function RootNode({ data }: { data: { label: string } }) {
   return (
-    <div className="px-8 py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-xl shadow-xl">
+    <div className="px-8 py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-serif font-bold text-2xl shadow-xl animate-pulse-ring">
       {data.label}
-      <Handle type="source" position={Position.Bottom} className="!bg-primary-foreground" />
+      <Handle type="source" position={Position.Bottom} className="!bg-primary-foreground !w-3 !h-3" />
     </div>
   );
 }
