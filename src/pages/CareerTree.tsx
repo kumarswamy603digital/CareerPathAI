@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { FilterPanel } from '@/components/FilterPanel';
+import { AIChatButton } from '@/components/AIChatButton';
 import { CareerNode, CategoryNode, SubCategoryNode, RootNode } from '@/components/CareerNode';
 import { CareerDetailPanel } from '@/components/CareerDetailPanel';
 import { CareerCompareModal } from '@/components/CareerCompareModal';
@@ -284,6 +285,8 @@ export default function CareerTree() {
         onOpenChange={setCompareModalOpen}
         onRemoveCareer={handleRemoveFromCompare}
       />
+
+      <AIChatButton />
     </div>
   );
 }
