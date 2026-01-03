@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConversation } from '@elevenlabs/react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CareerResultModal } from '@/components/CareerResultModal';
@@ -25,7 +26,7 @@ export default function Onboarding() {
   const [careerResult, setCareerResult] = useState<CareerResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
-
+  const { addToHistory } = useAssessmentHistory();
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
@@ -64,6 +65,7 @@ export default function Onboarding() {
   const handleAcceptCareer = async () => {
     if (!userId || !careerResult) return;
 
+    // Update the current profile
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -79,6 +81,13 @@ export default function Onboarding() {
       toast.error('Failed to save your results');
       return;
     }
+
+    // Save to assessment history
+    await addToHistory({
+      personality: careerResult.personality,
+      interests: careerResult.interests,
+      recommended_career: careerResult.career,
+    });
 
     toast.success(`Great choice! Exploring ${careerResult.career}`);
     
