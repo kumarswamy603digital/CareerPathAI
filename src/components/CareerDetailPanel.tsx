@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CareerDetails, formatSalaryRange, getCareerTrajectory } from '@/data/careerDetails';
 import { useLiveSalaryData } from '@/hooks/useLiveSalaryData';
+import { useJobDemand } from '@/hooks/useJobDemand';
 import { 
   DollarSign, 
   GraduationCap, 
@@ -20,7 +21,10 @@ import {
   Sparkles,
   ChevronRight,
   Radio,
-  Clock
+  Clock,
+  MapPin,
+  Building2,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSimilarCareers, hasCareerDetails } from '@/lib/careerSuggestions';
@@ -72,6 +76,7 @@ export function CareerDetailPanel({
   onViewCareer
 }: CareerDetailPanelProps) {
   const { salary: liveSalary, isLoading: salaryLoading, isLive } = useLiveSalaryData(career?.name || null);
+  const { demand: jobDemand, isLoading: demandLoading } = useJobDemand(career?.name || null);
   
   if (!career) return null;
   
@@ -162,6 +167,84 @@ export function CareerDetailPanel({
 
           <Separator className="bg-border" />
 
+          {/* Job Market Demand */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <Users className="w-5 h-5 text-primary" />
+              <span>Job Market Demand</span>
+              {demandLoading ? (
+                <Badge variant="outline" className="ml-auto text-xs gap-1 animate-pulse">
+                  <Clock className="w-3 h-3" />
+                  Loading...
+                </Badge>
+              ) : jobDemand ? (
+                <Badge variant="outline" className={cn(
+                  "ml-auto text-xs gap-1",
+                  jobDemand.demandLevel === 'Very High' && "bg-green-50 text-green-700 border-green-200",
+                  jobDemand.demandLevel === 'High' && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                  jobDemand.demandLevel === 'Moderate' && "bg-amber-50 text-amber-700 border-amber-200",
+                  jobDemand.demandLevel === 'Low' && "bg-red-50 text-red-700 border-red-200"
+                )}>
+                  {jobDemand.demandLevel}
+                </Badge>
+              ) : null}
+            </div>
+            <div className="bg-accent/50 rounded-lg p-4 border border-border space-y-3">
+              {demandLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
+              ) : jobDemand ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground">
+                      {jobDemand.currentOpenings.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-muted-foreground">open positions</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                    <span className="text-green-600 font-medium">+{jobDemand.monthlyGrowth}%</span>
+                    <span className="text-muted-foreground">monthly growth</span>
+                  </div>
+                  <div className="pt-2 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <Building2 className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-foreground mb-1">Top Hiring Companies</p>
+                        <div className="flex flex-wrap gap-1">
+                          {jobDemand.topHiringCompanies.slice(0, 4).map((company) => (
+                            <Badge key={company} variant="secondary" className="text-[10px] px-1.5 py-0">
+                              {company}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-medium text-foreground mb-1">Hot Locations</p>
+                        <p className="text-xs text-muted-foreground">
+                          {jobDemand.hotLocations.slice(0, 4).join(' • ')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
+                      <Clock className="w-3 h-3" />
+                      Avg. time to hire: {jobDemand.avgTimeToHire}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No demand data available</p>
+              )}
+            </div>
+          </div>
+
+          <Separator className="bg-border" />
+
           {/* Job Outlook */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-foreground font-medium">
@@ -175,8 +258,6 @@ export function CareerDetailPanel({
               </p>
             </div>
           </div>
-
-          <Separator className="bg-border" />
 
           {/* Skills Required */}
           <div className="space-y-3">
