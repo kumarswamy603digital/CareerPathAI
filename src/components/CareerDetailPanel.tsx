@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { CareerDetails, formatSalaryRange, getCareerTrajectory, CareerTrajectoryLevel } from '@/data/careerDetails';
+import { CareerDetails, formatSalaryRange, getCareerTrajectory } from '@/data/careerDetails';
 import { 
   DollarSign, 
   GraduationCap, 
@@ -14,9 +14,12 @@ import {
   BookOpen,
   Heart,
   ArrowRight,
-  Target
+  Target,
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getSimilarCareers, hasCareerDetails } from '@/lib/careerSuggestions';
 
 interface CareerDetailPanelProps {
   career: CareerDetails | null;
@@ -24,6 +27,7 @@ interface CareerDetailPanelProps {
   onOpenChange: (open: boolean) => void;
   isInShortlist?: boolean;
   onToggleShortlist?: (careerName: string) => void;
+  onViewCareer?: (careerName: string) => void;
 }
 
 const JobOutlookIcon = ({ outlook }: { outlook: CareerDetails['jobOutlook'] }) => {
@@ -60,9 +64,12 @@ export function CareerDetailPanel({
   open, 
   onOpenChange,
   isInShortlist = false,
-  onToggleShortlist
+  onToggleShortlist,
+  onViewCareer
 }: CareerDetailPanelProps) {
   if (!career) return null;
+  
+  const similarCareers = getSimilarCareers(career.name, 3);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -216,6 +223,63 @@ export function CareerDetailPanel({
               ))}
             </div>
           </div>
+
+          {/* Similar Careers */}
+          {similarCareers.length > 0 && (
+            <>
+              <Separator className="bg-border" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-foreground font-medium">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span>You Might Also Like</span>
+                </div>
+                <div className="space-y-2">
+                  {similarCareers.map((similar) => (
+                    <button
+                      key={similar.name}
+                      onClick={() => {
+                        if (hasCareerDetails(similar.name) && onViewCareer) {
+                          onViewCareer(similar.name);
+                        }
+                      }}
+                      disabled={!hasCareerDetails(similar.name)}
+                      className={cn(
+                        "w-full text-left bg-accent/40 hover:bg-accent/70 rounded-lg p-3 border border-border/50 transition-colors group",
+                        !hasCareerDetails(similar.name) && "opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                          {similar.name}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {similar.sharedInterests.slice(0, 3).map((interest) => (
+                          <Badge 
+                            key={interest} 
+                            variant="outline" 
+                            className="text-[10px] px-1.5 py-0 bg-primary/10 border-primary/20 text-primary"
+                          >
+                            {interest}
+                          </Badge>
+                        ))}
+                        {similar.sharedPersonalities.slice(0, 1).map((personality) => (
+                          <Badge 
+                            key={personality} 
+                            variant="outline" 
+                            className="text-[10px] px-1.5 py-0 bg-secondary/50 border-secondary text-secondary-foreground"
+                          >
+                            {personality}
+                          </Badge>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
