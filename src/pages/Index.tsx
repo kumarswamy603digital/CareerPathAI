@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, MessageSquare, LogOut } from 'lucide-react';
+import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, MessageSquare, LogOut, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { InviteFriends } from '@/components/InviteFriends';
 import { useToast } from '@/hooks/use-toast';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useAdminRole();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -42,6 +44,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center relative">
       <div className="absolute top-4 right-4 flex items-center gap-2">
+        {isAdmin && (
+          <Link to="/admin">
+            <Button variant="ghost" size="icon" title="Admin Dashboard">
+              <Shield className="w-5 h-5" />
+            </Button>
+          </Link>
+        )}
         {isAuthenticated && (
           <Button variant="ghost" size="icon" onClick={handleLogout} title="Sign out">
             <LogOut className="w-5 h-5" />
