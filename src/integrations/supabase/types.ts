@@ -275,23 +275,39 @@ export type Database = {
       }
     }
     Views: {
-      assessment_analytics: {
-        Row: {
-          recommendation_count: number | null
-          recommended_career: string | null
-        }
-        Relationships: []
-      }
-      career_analytics: {
-        Row: {
-          career_name: string | null
-          unique_users: number | null
-          view_count: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_assessment_analytics: {
+        Args: never
+        Returns: {
+          recommendation_count: number
+          recommended_career: string
+        }[]
+      }
+      get_career_analytics: {
+        Args: never
+        Returns: {
+          career_name: string
+          unique_users: number
+          view_count: number
+        }[]
+      }
+      get_shortlist_analytics: {
+        Args: never
+        Returns: {
+          career_name: string
+          shortlist_count: number
+        }[]
+      }
+      get_user_stats: {
+        Args: never
+        Returns: {
+          public_profiles: number
+          total_users: number
+          users_with_onboarding: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
