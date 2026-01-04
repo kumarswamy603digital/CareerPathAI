@@ -3,6 +3,8 @@ import { useConversation } from '@elevenlabs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { getLanguageByCode } from '@/lib/voiceLanguages';
 import { toast } from 'sonner';
 import { MessageCircle, X, Mic, MicOff, Loader2, Volume2, Send, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,6 +24,7 @@ export function AIChatButton() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const conversation = useConversation({
@@ -50,18 +53,28 @@ export function AIChatButton() {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
+    const lang = getLanguageByCode(selectedLanguage);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
+        overrides: {
+          agent: {
+            language: selectedLanguage,
+          },
+        },
       } as any);
+      
+      if (selectedLanguage !== 'en') {
+        toast.success(`Connected! Speaking in ${lang.name}`);
+      }
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to connect. Please allow microphone access.');
     } finally {
       setIsConnecting(false);
     }
-  }, [conversation]);
+  }, [conversation, selectedLanguage]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
@@ -212,6 +225,19 @@ export function AIChatButton() {
                 </button>
               </div>
             </div>
+            
+            {/* Language selector for voice mode */}
+            {mode === 'voice' && (
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
+                <span className="text-xs text-muted-foreground">Language:</span>
+                <LanguageSelector
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={setSelectedLanguage}
+                  variant="compact"
+                  disabled={isConnected}
+                />
+              </div>
+            )}
           </div>
           
           {mode === 'voice' ? (

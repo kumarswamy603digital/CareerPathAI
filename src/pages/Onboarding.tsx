@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CareerResultModal } from '@/components/CareerResultModal';
 import { PersonalityQuiz } from '@/components/PersonalityQuiz';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { getLanguageByCode } from '@/lib/voiceLanguages';
 import { toast } from 'sonner';
 import { Mic, MicOff, Compass, Volume2, Loader2, ClipboardList } from 'lucide-react';
 
@@ -26,6 +28,7 @@ export default function Onboarding() {
   const [careerResult, setCareerResult] = useState<CareerResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const { addToHistory } = useAssessmentHistory();
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -145,19 +148,29 @@ export default function Onboarding() {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
+    const lang = getLanguageByCode(selectedLanguage);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
+        overrides: {
+          agent: {
+            language: selectedLanguage,
+          },
+        },
       } as any);
+      
+      if (selectedLanguage !== 'en') {
+        toast.success(`Connected! Speaking in ${lang.name}`);
+      }
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to start conversation. Please allow microphone access.');
     } finally {
       setIsConnecting(false);
     }
-  }, [conversation]);
+  }, [conversation, selectedLanguage]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
@@ -192,6 +205,17 @@ export default function Onboarding() {
           <CardDescription className="text-base text-muted-foreground">
             Have a conversation with our AI advisor to discover your ideal career path based on your interests and personality.
           </CardDescription>
+          
+          {/* Language selector */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <span className="text-sm text-muted-foreground">Voice language:</span>
+            <LanguageSelector
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={setSelectedLanguage}
+              variant="default"
+              disabled={conversation.status === 'connected'}
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Status indicator */}
