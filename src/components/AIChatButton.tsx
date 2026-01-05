@@ -51,13 +51,22 @@ export function AIChatButton() {
     }
   }, [messages]);
 
+  // Cleanup to prevent orphaned sessions (can cause "connected but silent" behavior)
+  useEffect(() => {
+    return () => {
+      conversation.endSession();
+    };
+  }, [conversation]);
+
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
     const lang = getLanguageByCode(selectedLanguage);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
+
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
+        connectionType: 'webrtc',
         overrides: {
           agent: {
             language: selectedLanguage,
@@ -78,7 +87,10 @@ Key areas you can help with:
           },
         },
       } as any);
-      
+
+      // Ensure output isn't muted
+      await conversation.setVolume({ volume: 1 });
+
       toast.success(`Connected! Speaking in ${lang.name}`);
     } catch (error) {
       console.error('Failed to start conversation:', error);
@@ -91,6 +103,19 @@ Key areas you can help with:
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
   }, [conversation]);
+
+  // "Demo" button: sends a text prompt so the agent will respond with spoken audio.
+  const sendDemo = useCallback(async () => {
+    const lang = getLanguageByCode(selectedLanguage);
+    try {
+      await conversation.sendUserMessage(
+        `Greet me in ${lang.nativeName} and ask me one short question about my interests.`
+      );
+    } catch (error) {
+      console.error('Failed to send demo message:', error);
+      toast.error('Could not play demo. Please try again.');
+    }
+  }, [conversation, selectedLanguage]);
 
   const handleToggle = () => {
     if (isOpen && isConnected) {
