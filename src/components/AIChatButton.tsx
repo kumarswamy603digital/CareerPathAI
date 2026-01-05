@@ -61,13 +61,25 @@ export function AIChatButton() {
         overrides: {
           agent: {
             language: selectedLanguage,
+            firstMessage: lang.firstMessage,
+            prompt: {
+              prompt: `You are a friendly and knowledgeable career advisor assistant. Help users explore career paths, understand job requirements, salary expectations, required skills, and education paths. ${lang.promptSuffix}
+
+Keep your responses concise but informative (2-3 paragraphs max). Be encouraging and supportive.
+
+Key areas you can help with:
+- Career comparisons and transitions
+- Required skills and education for different roles
+- Salary ranges and job outlook
+- Day-to-day responsibilities
+- Career progression paths
+- Similar careers they might enjoy`,
+            },
           },
         },
       } as any);
       
-      if (selectedLanguage !== 'en') {
-        toast.success(`Connected! Speaking in ${lang.name}`);
-      }
+      toast.success(`Connected! Speaking in ${lang.name}`);
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to connect. Please allow microphone access.');

@@ -157,13 +157,28 @@ export default function Onboarding() {
         overrides: {
           agent: {
             language: selectedLanguage,
+            firstMessage: lang.firstMessage,
+            prompt: {
+              prompt: `You are a friendly and knowledgeable career advisor. Help users discover their ideal career path by asking about their interests, skills, personality traits, and work preferences. ${lang.promptSuffix}
+
+When you have gathered enough information about the user's:
+- Interests (at least 2-3)
+- Personality traits (at least 2-3)  
+- Preferred career direction
+
+Call the "career" tool with:
+- interests: array of user's key interests
+- personality: array of personality traits
+- career: the recommended career title
+- reasoning: brief explanation of why this career fits them
+
+Keep the conversation natural and encouraging. Ask follow-up questions to understand them better.`,
+            },
           },
         },
       } as any);
       
-      if (selectedLanguage !== 'en') {
-        toast.success(`Connected! Speaking in ${lang.name}`);
-      }
+      toast.success(`Connected! Speaking in ${lang.name}`);
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to start conversation. Please allow microphone access.');
