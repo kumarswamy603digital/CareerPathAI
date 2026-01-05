@@ -146,14 +146,22 @@ export default function Onboarding() {
     },
   });
 
+  // Cleanup to avoid dangling sessions that can break audio on the next connect.
+  useEffect(() => {
+    return () => {
+      conversation.endSession();
+    };
+  }, [conversation]);
+
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
     const lang = getLanguageByCode(selectedLanguage);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
+        connectionType: 'webrtc',
         overrides: {
           agent: {
             language: selectedLanguage,
@@ -177,7 +185,9 @@ Keep the conversation natural and encouraging. Ask follow-up questions to unders
           },
         },
       } as any);
-      
+
+      await conversation.setVolume({ volume: 1 });
+
       toast.success(`Connected! Speaking in ${lang.name}`);
     } catch (error) {
       console.error('Failed to start conversation:', error);
@@ -190,6 +200,18 @@ Keep the conversation natural and encouraging. Ask follow-up questions to unders
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
   }, [conversation]);
+
+  const sendDemo = useCallback(async () => {
+    const lang = getLanguageByCode(selectedLanguage);
+    try {
+      await conversation.sendUserMessage(
+        `Greet me in ${lang.nativeName} and ask me one short question about my interests.`
+      );
+    } catch (error) {
+      console.error('Failed to send demo message:', error);
+      toast.error('Could not play demo. Please try again.');
+    }
+  }, [conversation, selectedLanguage]);
 
   const isConnected = conversation.status === 'connected';
   const isSpeaking = conversation.isSpeaking;
