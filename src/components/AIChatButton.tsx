@@ -3,8 +3,6 @@ import { useConversation } from '@elevenlabs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { getLanguageByCode } from '@/lib/voiceLanguages';
 import { toast } from 'sonner';
 import { MessageCircle, X, Mic, MicOff, Loader2, Volume2, Send, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,7 +22,6 @@ export function AIChatButton() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const conversation = useConversation({
@@ -60,62 +57,28 @@ export function AIChatButton() {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
-    const lang = getLanguageByCode(selectedLanguage);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
         connectionType: 'webrtc',
-        overrides: {
-          agent: {
-            language: selectedLanguage,
-            firstMessage: lang.firstMessage,
-            prompt: {
-              prompt: `You are a friendly and knowledgeable career advisor assistant. Help users explore career paths, understand job requirements, salary expectations, required skills, and education paths. ${lang.promptSuffix}
+      });
 
-Keep your responses concise but informative (2-3 paragraphs max). Be encouraging and supportive.
-
-Key areas you can help with:
-- Career comparisons and transitions
-- Required skills and education for different roles
-- Salary ranges and job outlook
-- Day-to-day responsibilities
-- Career progression paths
-- Similar careers they might enjoy`,
-            },
-          },
-        },
-      } as any);
-
-      // Ensure output isn't muted
       await conversation.setVolume({ volume: 1 });
 
-      toast.success(`Connected! Speaking in ${lang.name}`);
+      toast.success('Connected! Ask me anything about careers.');
     } catch (error) {
       console.error('Failed to start conversation:', error);
       toast.error('Failed to connect. Please allow microphone access.');
     } finally {
       setIsConnecting(false);
     }
-  }, [conversation, selectedLanguage]);
+  }, [conversation]);
 
   const stopConversation = useCallback(async () => {
     await conversation.endSession();
   }, [conversation]);
-
-  // "Demo" button: sends a text prompt so the agent will respond with spoken audio.
-  const sendDemo = useCallback(async () => {
-    const lang = getLanguageByCode(selectedLanguage);
-    try {
-      await conversation.sendUserMessage(
-        `Greet me in ${lang.nativeName} and ask me one short question about my interests.`
-      );
-    } catch (error) {
-      console.error('Failed to send demo message:', error);
-      toast.error('Could not play demo. Please try again.');
-    }
-  }, [conversation, selectedLanguage]);
 
   const handleToggle = () => {
     if (isOpen && isConnected) {
@@ -263,18 +226,6 @@ Key areas you can help with:
               </div>
             </div>
             
-            {/* Language selector for voice mode */}
-            {mode === 'voice' && (
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border">
-                <span className="text-xs text-muted-foreground">Language:</span>
-                <LanguageSelector
-                  selectedLanguage={selectedLanguage}
-                  onLanguageChange={setSelectedLanguage}
-                  variant="compact"
-                  disabled={isConnected}
-                />
-              </div>
-            )}
           </div>
           
           {mode === 'voice' ? (
