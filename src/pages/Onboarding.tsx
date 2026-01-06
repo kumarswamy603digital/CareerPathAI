@@ -19,6 +19,34 @@ interface CareerResult {
   reasoning?: string;
 }
 
+const micErrorToMessage = (err: unknown) => {
+  const e = err as Partial<DOMException> | undefined;
+  const name = e?.name;
+
+  switch (name) {
+    case 'NotAllowedError':
+    case 'PermissionDeniedError':
+      return 'Microphone permission denied. Please allow microphone access for this site (try opening in a new tab if you are in a preview).';
+    case 'NotFoundError':
+      return 'No microphone found. Please connect a microphone and try again.';
+    case 'NotReadableError':
+      return 'Microphone is busy or unavailable (another app may be using it). Close other apps and try again.';
+    case 'SecurityError':
+      return 'Microphone access requires a secure context (HTTPS).';
+    default:
+      return null;
+  }
+};
+
+const isEmbedded = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    // Cross-origin frame access throws; treat as embedded.
+    return true;
+  }
+};
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const [isConnecting, setIsConnecting] = useState(false);
@@ -152,9 +180,21 @@ export default function Onboarding() {
 
   const startConversation = useCallback(async () => {
     setIsConnecting(true);
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
 
+    // Microphone access is often blocked inside embedded previews/iframes.
+    if (isEmbedded()) {
+      toast.error('Voice chat needs to run in a new tab to access the microphone. Opening a new tab now.');
+      window.open(window.location.href, '_blank', 'noopener,noreferrer');
+      setIsConnecting(false);
+      return;
+    }
+
+    // If a previous session is still around, end it first.
+    if (conversation.status === 'connected') {
+      await conversation.endSession();
+    }
+
+    try {
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
         connectionType: 'webrtc',
@@ -163,9 +203,11 @@ export default function Onboarding() {
       await conversation.setVolume({ volume: 1 });
 
       toast.success('Connected! Start speaking with your career advisor.');
-    } catch (error) {
-      console.error('Failed to start conversation:', error);
-      toast.error('Failed to start conversation. Please allow microphone access.');
+    } catch (err) {
+      const micMsg = micErrorToMessage(err);
+      const fallback = err instanceof Error ? err.message : '';
+      console.error('Failed to start voice session:', err);
+      toast.error(micMsg ?? (fallback ? `Failed to start voice chat: ${fallback}` : 'Failed to start voice chat.'));
     } finally {
       setIsConnecting(false);
     }
