@@ -1,16 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useConversation } from '@elevenlabs/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CareerResultModal } from '@/components/CareerResultModal';
 import { PersonalityQuiz } from '@/components/PersonalityQuiz';
+import { CareerChat } from '@/components/CareerChat';
 import { toast } from 'sonner';
-import { Mic, MicOff, Compass, Volume2, Loader2, ClipboardList } from 'lucide-react';
-
-const ELEVENLABS_AGENT_ID = 'agent_8501k18x4qeee61vtwnh9g56b0em';
+import { Compass, MessageSquare, ClipboardList } from 'lucide-react';
 
 interface CareerResult {
   interests: string[];
@@ -19,42 +17,15 @@ interface CareerResult {
   reasoning?: string;
 }
 
-const micErrorToMessage = (err: unknown) => {
-  const e = err as Partial<DOMException> | undefined;
-  const name = e?.name;
-
-  switch (name) {
-    case 'NotAllowedError':
-    case 'PermissionDeniedError':
-      return 'Microphone permission denied. Please allow microphone access for this site (try opening in a new tab if you are in a preview).';
-    case 'NotFoundError':
-      return 'No microphone found. Please connect a microphone and try again.';
-    case 'NotReadableError':
-      return 'Microphone is busy or unavailable (another app may be using it). Close other apps and try again.';
-    case 'SecurityError':
-      return 'Microphone access requires a secure context (HTTPS).';
-    default:
-      return null;
-  }
-};
-
-const isEmbedded = () => {
-  try {
-    return window.self !== window.top;
-  } catch {
-    // Cross-origin frame access throws; treat as embedded.
-    return true;
-  }
-};
-
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [isConnecting, setIsConnecting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [careerResult, setCareerResult] = useState<CareerResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const { addToHistory } = useAssessmentHistory();
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
@@ -75,25 +46,14 @@ export default function Onboarding() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const saveCareerResults = async (params: CareerResult) => {
-    if (!userId) {
-      toast.error('User not found');
-      return 'Error: User not found';
-    }
-
-    console.log('Career tool called with:', params);
-    
-    // Store the result and show modal instead of saving immediately
-    setCareerResult(params);
+  const handleCareerResult = (result: CareerResult) => {
+    setCareerResult(result);
     setShowResult(true);
-
-    return `Career recommendation received: ${params.career}. Showing to user for confirmation.`;
   };
 
   const handleAcceptCareer = async () => {
     if (!userId || !careerResult) return;
 
-    // Update the current profile
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -110,7 +70,6 @@ export default function Onboarding() {
       return;
     }
 
-    // Save to assessment history
     await addToHistory({
       personality: careerResult.personality,
       interests: careerResult.interests,
@@ -119,7 +78,6 @@ export default function Onboarding() {
 
     toast.success(`Great choice! Exploring ${careerResult.career}`);
     
-    // Navigate to tree with filters applied via URL params
     const params = new URLSearchParams();
     params.set('career', careerResult.career);
     params.set('interests', careerResult.interests.join(','));
@@ -132,10 +90,7 @@ export default function Onboarding() {
     setShowResult(false);
     setCareerResult(null);
     setShowQuiz(false);
-    // End current session if connected
-    if (conversation.status === 'connected') {
-      conversation.endSession();
-    }
+    setShowChat(false);
   };
 
   const handleQuizComplete = (result: CareerResult) => {
@@ -148,77 +103,8 @@ export default function Onboarding() {
     setShowResult(false);
     setCareerResult(null);
     setShowQuiz(false);
+    setShowChat(false);
   };
-
-  const conversation = useConversation({
-    clientTools: {
-      career: async (params: { interests: string[]; personality: string[]; career: string; reasoning?: string }) => {
-        console.log('Career tool called with:', params);
-        return await saveCareerResults(params);
-      },
-    },
-    onConnect: () => {
-      console.log('Connected to ElevenLabs agent');
-      toast.success('Connected! Start speaking with your career advisor.');
-    },
-    onDisconnect: () => {
-      console.log('Disconnected from agent');
-    },
-    onError: (error) => {
-      console.error('Conversation error:', error);
-      toast.error('Connection error. Please try again.');
-      setIsConnecting(false);
-    },
-  });
-
-  // Cleanup to avoid dangling sessions that can break audio on the next connect.
-  useEffect(() => {
-    return () => {
-      conversation.endSession();
-    };
-  }, [conversation]);
-
-  const startConversation = useCallback(async () => {
-    setIsConnecting(true);
-
-    // Microphone access is often blocked inside embedded previews/iframes.
-    if (isEmbedded()) {
-      toast.error('Voice chat needs to run in a new tab to access the microphone. Opening a new tab now.');
-      window.open(window.location.href, '_blank', 'noopener,noreferrer');
-      setIsConnecting(false);
-      return;
-    }
-
-    // If a previous session is still around, end it first.
-    if (conversation.status === 'connected') {
-      await conversation.endSession();
-    }
-
-    try {
-      await conversation.startSession({
-        agentId: ELEVENLABS_AGENT_ID,
-        connectionType: 'webrtc',
-      });
-
-      await conversation.setVolume({ volume: 1 });
-
-      toast.success('Connected! Start speaking with your career advisor.');
-    } catch (err) {
-      const micMsg = micErrorToMessage(err);
-      const fallback = err instanceof Error ? err.message : '';
-      console.error('Failed to start voice session:', err);
-      toast.error(micMsg ?? (fallback ? `Failed to start voice chat: ${fallback}` : 'Failed to start voice chat.'));
-    } finally {
-      setIsConnecting(false);
-    }
-  }, [conversation]);
-
-  const stopConversation = useCallback(async () => {
-    await conversation.endSession();
-  }, [conversation]);
-
-  const isConnected = conversation.status === 'connected';
-  const isSpeaking = conversation.isSpeaking;
 
   // Show quiz mode
   if (showQuiz) {
@@ -232,93 +118,78 @@ export default function Onboarding() {
     );
   }
 
+  // Show chat mode
+  if (showChat) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-2xl mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowChat(false)}
+            className="text-muted-foreground"
+          >
+            ← Back
+          </Button>
+        </div>
+        <CareerChat onCareerResult={handleCareerResult} />
+        
+        {showResult && careerResult && (
+          <CareerResultModal
+            career={careerResult.career}
+            interests={careerResult.interests}
+            personality={careerResult.personality}
+            reasoning={careerResult.reasoning}
+            onAccept={handleAcceptCareer}
+            onRedo={handleRedoConversation}
+            onClose={handleCloseModal}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-lg bg-card border-border shadow-xl">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent mx-auto mb-4 relative">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent mx-auto mb-4">
             <Compass className="w-10 h-10 text-primary" />
-            {isConnected && isSpeaking && (
-              <div className="absolute inset-0 rounded-full border-4 border-primary animate-pulse" />
-            )}
           </div>
           <CardTitle className="text-2xl font-serif">Career Discovery</CardTitle>
           <CardDescription className="text-base text-muted-foreground">
             Have a conversation with our AI advisor to discover your ideal career path based on your interests and personality.
           </CardDescription>
-          
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Status indicator */}
-          <div className="flex items-center justify-center gap-2 text-sm">
-            {isConnected ? (
-              <>
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-muted-foreground">
-                  {isSpeaking ? 'AI is speaking...' : 'Listening...'}
-                </span>
-                {isSpeaking && <Volume2 className="w-4 h-4 text-primary animate-pulse" />}
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 rounded-full bg-muted-foreground" />
-                <span className="text-muted-foreground">Not connected</span>
-              </>
-            )}
-          </div>
-
           {/* Main action buttons */}
           <div className="flex flex-col items-center gap-3">
-            {!isConnected ? (
-              <>
-                <Button
-                  size="lg"
-                  onClick={startConversation}
-                  disabled={isConnecting}
-                  className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full max-w-xs"
-                >
-                  {isConnecting ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Connecting...
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-5 h-5" />
-                      Start Voice Chat
-                    </>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => setShowQuiz(true)}
-                  className="gap-2 px-8 py-6 w-full max-w-xs"
-                >
-                  <ClipboardList className="w-5 h-5" />
-                  Take Personality Quiz
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="lg"
-                variant="destructive"
-                onClick={stopConversation}
-                className="gap-2 text-lg px-8 py-6"
-              >
-                <MicOff className="w-5 h-5" />
-                End Conversation
-              </Button>
-            )}
+            <Button
+              size="lg"
+              onClick={() => setShowChat(true)}
+              className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full max-w-xs"
+            >
+              <MessageSquare className="w-5 h-5" />
+              Chat with AI Advisor
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setShowQuiz(true)}
+              className="gap-2 px-8 py-6 w-full max-w-xs"
+            >
+              <ClipboardList className="w-5 h-5" />
+              Take Personality Quiz
+            </Button>
           </div>
 
           {/* Instructions */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <h4 className="font-medium text-sm font-serif">How it works:</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• <strong>Voice Chat:</strong> Talk naturally about your interests and strengths</li>
-              <li>• <strong>Quiz:</strong> Answer questions if you prefer typing</li>
+              <li>• <strong>Chat:</strong> Have a conversation with our AI career advisor</li>
+              <li>• <strong>Quiz:</strong> Answer questions if you prefer a structured approach</li>
               <li>• The AI will analyze your responses and recommend careers</li>
+              <li>• 🔊 AI responses are read aloud (toggle in chat)</li>
             </ul>
           </div>
 
