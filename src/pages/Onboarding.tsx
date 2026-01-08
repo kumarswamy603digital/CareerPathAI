@@ -6,9 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CareerResultModal } from '@/components/CareerResultModal';
 import { PersonalityQuiz } from '@/components/PersonalityQuiz';
-import { CareerChat } from '@/components/CareerChat';
+import { VoiceCareerAdvisor } from '@/components/VoiceCareerAdvisor';
 import { toast } from 'sonner';
-import { Compass, MessageSquare, ClipboardList } from 'lucide-react';
+import { Compass, Mic, ClipboardList } from 'lucide-react';
 
 interface CareerResult {
   interests: string[];
@@ -118,7 +118,7 @@ export default function Onboarding() {
     );
   }
 
-  // Show chat mode
+  // Show voice chat mode
   if (showChat) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -131,7 +131,7 @@ export default function Onboarding() {
             ← Back
           </Button>
         </div>
-        <CareerChat onCareerResult={handleCareerResult} />
+        <VoiceCareerAdvisor onCareerResult={handleCareerResult} />
         
         {showResult && careerResult && (
           <CareerResultModal
@@ -157,7 +157,7 @@ export default function Onboarding() {
           </div>
           <CardTitle className="text-2xl font-serif">Career Discovery</CardTitle>
           <CardDescription className="text-base text-muted-foreground">
-            Have a conversation with our AI advisor to discover your ideal career path based on your interests and personality.
+            Have a voice conversation with our AI advisor to discover your ideal career path.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -168,8 +168,8 @@ export default function Onboarding() {
               onClick={() => setShowChat(true)}
               className="gap-2 text-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold w-full max-w-xs"
             >
-              <MessageSquare className="w-5 h-5" />
-              Chat with AI Advisor
+              <Mic className="w-5 h-5" />
+              Talk to AI Advisor
             </Button>
             <Button
               variant="outline"
@@ -186,10 +186,10 @@ export default function Onboarding() {
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <h4 className="font-medium text-sm font-serif">How it works:</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• <strong>Chat:</strong> Have a conversation with our AI career advisor</li>
+              <li>• <strong>Voice:</strong> Have a real-time voice conversation with AI</li>
               <li>• <strong>Quiz:</strong> Answer questions if you prefer a structured approach</li>
               <li>• The AI will analyze your responses and recommend careers</li>
-              <li>• 🔊 AI responses are read aloud (toggle in chat)</li>
+              <li>• 🎤 Speak naturally - the AI understands you</li>
             </ul>
           </div>
 
