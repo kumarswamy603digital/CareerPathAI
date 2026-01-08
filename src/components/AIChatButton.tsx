@@ -52,6 +52,16 @@ export function AIChatButton() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const conversation = useConversation({
+    clientTools: {
+      career: (params: { personality: string[]; career: string; interests: string[] }) => {
+        console.log("Career tool called with:", params);
+        toast.success(`Career recommendation: ${params.career}`, {
+          description: `Based on your interests and personality, we recommend ${params.career}!`,
+          duration: 10000,
+        });
+        return "Career recommendation noted. Feel free to ask more questions!";
+      },
+    },
     onConnect: () => {
       console.log('Connected to ElevenLabs agent');
       toast.success('Connected! Ask me anything about careers.');
