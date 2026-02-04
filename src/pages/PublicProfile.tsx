@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import careerPathLogo from '@/assets/logo_career_path_icon.png';
 import { 
-  Compass, 
   Briefcase, 
   Sparkles, 
+  Compass,
   Heart,
   User,
   ArrowLeft,
@@ -62,7 +63,7 @@ const PublicProfile = () => {
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2">
-              <Compass className="w-8 h-8 text-primary" />
+              <img src={careerPathLogo} alt="CareerPath" className="w-8 h-8 rounded-lg" />
               <span className="text-xl font-serif font-bold text-primary">CareerPath</span>
             </Link>
           </div>
@@ -112,7 +113,7 @@ const PublicProfile = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <img src={careerPathLogo} alt="CareerPath" className="w-8 h-8 rounded-lg" />
             <span className="text-xl font-serif font-bold text-primary">CareerPath</span>
           </Link>
           <Link to="/auth">

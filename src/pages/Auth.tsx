@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Compass, Mail, Lock, CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react';
+import careerPathLogo from '@/assets/logo_career_path_icon.png';
+import { Mail, Lock, CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -236,8 +237,8 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-card border-border shadow-xl">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent mx-auto mb-4">
-            <Compass className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
+            <img src={careerPathLogo} alt="CareerPath" className="w-16 h-16" />
           </div>
           <CardTitle className="text-2xl font-serif">CareerPath</CardTitle>
           <CardDescription className="text-muted-foreground">
