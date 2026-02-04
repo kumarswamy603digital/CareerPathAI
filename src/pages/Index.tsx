@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Compass, GitBranch, Sparkles, Mic, LayoutDashboard, MessageSquare, LogOut, Shield } from 'lucide-react';
+import { GitBranch, Sparkles, Mic, LayoutDashboard, MessageSquare, LogOut, Shield } from 'lucide-react';
+import careerPathLogo from '@/assets/logo_career_path.png';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { InviteFriends } from '@/components/InviteFriends';
@@ -60,9 +61,7 @@ const Index = () => {
       </div>
       <div className="text-center max-w-2xl mx-auto px-6">
         <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent mb-6">
-            <Compass className="w-10 h-10 text-primary" />
-          </div>
+          <img src={careerPathLogo} alt="CareerPath Logo" className="w-20 h-20 mx-auto mb-6" />
           <h1 className="text-5xl font-serif font-bold mb-4 text-primary">
             CareerPath
           </h1>
