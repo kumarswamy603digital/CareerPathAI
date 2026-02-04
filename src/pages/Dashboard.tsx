@@ -18,8 +18,9 @@ import {
   CareerListSkeleton,
   RecentActivitySkeleton,
 } from '@/components/LoadingSkeletons';
+import careerPathLogo from '@/assets/logo_career_path_icon.png';
 import { 
-  Compass, 
+  Compass,
   Heart, 
   Clock, 
   TrendingUp, 
@@ -103,7 +104,7 @@ const Dashboard = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Compass className="w-8 h-8 text-primary" />
+            <img src={careerPathLogo} alt="CareerPath" className="w-8 h-8 rounded-lg" />
             <span className="text-xl font-serif font-bold text-primary">CareerPath</span>
           </Link>
           <div className="flex items-center gap-3">
