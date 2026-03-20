@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,40 +7,38 @@ const corsHeaders = {
 };
 
 // BLS Occupational Employment and Wage Statistics (OEWS) series codes mapping
-// Format: OEUM[area][area_type][industry][occupation][datatype]
-// Using national data (0000000) for broader coverage
 const occupationCodes: Record<string, string> = {
-  'Software Engineer': '15-1252', // Software Developers
-  'Data Scientist': '15-2051', // Data Scientists
-  'Machine Learning Engineer': '15-2051', // Data Scientists (closest match)
-  'Product Manager': '11-2021', // Marketing Managers (closest match)
-  'UX Designer': '27-1021', // Commercial and Industrial Designers
-  'Graphic Designer': '27-1024', // Graphic Designers
-  'Nurse': '29-1141', // Registered Nurses
-  'Doctor': '29-1218', // Physicians
-  'Lawyer': '23-1011', // Lawyers
-  'Accountant': '13-2011', // Accountants and Auditors
-  'Teacher': '25-2031', // Secondary School Teachers
-  'Electrician': '47-2111', // Electricians
-  'Mechanic': '49-3023', // Automotive Service Technicians
-  'Chef': '35-1011', // Chefs and Head Cooks
-  'Pharmacist': '29-1051', // Pharmacists
-  'Architect': '17-1011', // Architects
-  'Civil Engineer': '17-2051', // Civil Engineers
-  'Marketing Manager': '11-2021', // Marketing Managers
-  'Financial Analyst': '13-2051', // Financial Analysts
-  'HR Manager': '11-3121', // Human Resources Managers
-  'Project Manager': '11-9199', // Managers, All Other
-  'Cloud Architect': '15-1244', // Network and Computer Systems Administrators
-  'Game Developer': '15-1252', // Software Developers
-  'Robotics Engineer': '17-2199', // Engineers, All Other
-  'Psychologist': '19-3031', // Clinical Psychologists
-  'Veterinarian': '29-1131', // Veterinarians
-  'Dentist': '29-1021', // Dentists
-  'Physical Therapist': '29-1123', // Physical Therapists
-  'Journalist': '27-3022', // Reporters and Correspondents
-  'Photographer': '27-4021', // Photographers
-  'Video Editor': '27-4032', // Film and Video Editors
+  'Software Engineer': '15-1252',
+  'Data Scientist': '15-2051',
+  'Machine Learning Engineer': '15-2051',
+  'Product Manager': '11-2021',
+  'UX Designer': '27-1021',
+  'Graphic Designer': '27-1024',
+  'Nurse': '29-1141',
+  'Doctor': '29-1218',
+  'Lawyer': '23-1011',
+  'Accountant': '13-2011',
+  'Teacher': '25-2031',
+  'Electrician': '47-2111',
+  'Mechanic': '49-3023',
+  'Chef': '35-1011',
+  'Pharmacist': '29-1051',
+  'Architect': '17-1011',
+  'Civil Engineer': '17-2051',
+  'Marketing Manager': '11-2021',
+  'Financial Analyst': '13-2051',
+  'HR Manager': '11-3121',
+  'Project Manager': '11-9199',
+  'Cloud Architect': '15-1244',
+  'Game Developer': '15-1252',
+  'Robotics Engineer': '17-2199',
+  'Psychologist': '19-3031',
+  'Veterinarian': '29-1131',
+  'Dentist': '29-1021',
+  'Physical Therapist': '29-1123',
+  'Journalist': '27-3022',
+  'Photographer': '27-4021',
+  'Video Editor': '27-4032',
 };
 
 // Fallback salary data based on BLS 2023 statistics
@@ -61,15 +60,36 @@ const fallbackSalaryData: Record<string, { min: number; median: number; max: num
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Authenticate the request
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error: authError } = await supabase.auth.getClaims(token);
+  if (authError || !data?.claims) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { careerName } = await req.json();
-    
-    console.log(`Fetching salary data for: ${careerName}`);
     
     if (!careerName) {
       return new Response(
@@ -82,7 +102,6 @@ serve(async (req) => {
     let salaryData = fallbackSalaryData[careerName];
     
     if (!salaryData) {
-      // Try to find a partial match
       const careerNameLower = careerName.toLowerCase();
       for (const [key, data] of Object.entries(fallbackSalaryData)) {
         if (careerNameLower.includes(key.toLowerCase()) || key.toLowerCase().includes(careerNameLower)) {
@@ -96,12 +115,11 @@ serve(async (req) => {
     const occupationCode = occupationCodes[careerName];
     if (occupationCode) {
       try {
-        // BLS Public Data API v2
         const blsResponse = await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            seriesid: [`OEUN000000000000${occupationCode}03`], // Annual mean wage
+            seriesid: [`OEUN000000000000${occupationCode}03`],
             startyear: '2022',
             endyear: '2023',
           }),
@@ -109,11 +127,10 @@ serve(async (req) => {
 
         if (blsResponse.ok) {
           const blsData = await blsResponse.json();
-          console.log('BLS API response:', JSON.stringify(blsData));
           
           if (blsData.status === 'REQUEST_SUCCEEDED' && blsData.Results?.series?.[0]?.data?.length > 0) {
             const latestData = blsData.Results.series[0].data[0];
-            const annualWage = parseFloat(latestData.value) * 1000; // BLS reports in thousands
+            const annualWage = parseFloat(latestData.value) * 1000;
             
             return new Response(
               JSON.stringify({
@@ -133,31 +150,18 @@ serve(async (req) => {
         }
       } catch (blsError) {
         console.error('BLS API error:', blsError);
-        // Fall through to use fallback data
       }
     }
 
-    // Use fallback data if BLS API fails or no mapping exists
     if (salaryData) {
-      console.log(`Using fallback data for: ${careerName}`);
       return new Response(
-        JSON.stringify({
-          careerName,
-          salary: salaryData,
-          isLive: false,
-        }),
+        JSON.stringify({ careerName, salary: salaryData, isLive: false }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // No data available
     return new Response(
-      JSON.stringify({
-        careerName,
-        salary: null,
-        isLive: false,
-        message: 'No salary data available for this career',
-      }),
+      JSON.stringify({ careerName, salary: null, isLive: false, message: 'No salary data available for this career' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
