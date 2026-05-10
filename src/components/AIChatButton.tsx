@@ -39,7 +39,12 @@ export function AIChatButton() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      if (!session?.access_token) {
+        toast.error('Please sign in to use the Career Advisor');
+        setIsLoading(false);
+        return;
+      }
+      const token = session.access_token;
 
       const response = await fetch(CHAT_URL, {
         method: 'POST',
